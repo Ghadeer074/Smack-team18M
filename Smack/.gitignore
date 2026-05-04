@@ -1,0 +1,21 @@
+# Xcode
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*x.pbxuser
+*.mode1v3
+*.mode2v3
+*.prespectivev3
+xcuserdata/ 
+
+# macOS
+.DS_Store
+**/ .DS_Store
+
+# CocoaPods
+Pods/
+
+#Swift Package Manager 
+
+.build/
