@@ -12,6 +12,7 @@ struct SmackApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+            //hgggggggg
         }
     }
 }
