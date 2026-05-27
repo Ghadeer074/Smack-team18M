@@ -16,7 +16,7 @@ struct ButtonView: View {
             RoundedRectangle(cornerRadius: 20)
                 .fill(.black)
                 .frame(width: width, height: height)
-                .offset(x: 6, y: 6)
+                .offset(x: 10, y: 10)
             
             // main rectangle
             RoundedRectangle(cornerRadius: 20)
