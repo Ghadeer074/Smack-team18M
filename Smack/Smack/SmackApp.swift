@@ -9,10 +9,11 @@ import SwiftUI
 
 @main
 struct SmackApp: App {
+
     var body: some Scene {
         WindowGroup {
             ContentView()
-            //hgggggggg
+            
         }
     }
 }
