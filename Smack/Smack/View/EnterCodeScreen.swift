@@ -26,8 +26,9 @@ struct EnterCodeScreen: View {
                         
                         TextField(". . .", text: $code)
                             .font(.custom("Lalezar-Regular", size: geo.size.width * 0.1))
+                            .foregroundStyle(.black)
                             .multilineTextAlignment(.center)
-                            .keyboardType(.numberPad)
+                            .keyboardType(.asciiCapableNumberPad)
                             .padding(.horizontal)
                             .onChange(of: code) {
                                 if code.count > 6 {
@@ -53,8 +54,24 @@ struct EnterCodeScreen: View {
                         .foregroundStyle(.white)
                         .opacity(0.6)
                     
+                    // ========= Button =========
                     
-                    ButtonView(width: 143, height: 65)
+                    Button {
+                        
+                    } label: {
+                        ZStack {
+                            ButtonView(width: 143, height: 65, color: Color(.red))
+                            
+                            Text("انضم")
+                                .font(.custom("Lalezar-Regular", size: geo.size.width * 0.08))
+                                .foregroundStyle(.white)
+                            
+                        }
+                    }
+                    
+                    Spacer().frame(height: geo.size.height * 0.3)
+                    
+                    
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
