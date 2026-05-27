@@ -52,7 +52,7 @@ struct JoinOrHostScreen: View {
                             ButtonView(width: 318, height: 221)
                             VStack {
                                 Image("JoinAGame")
-                                Text("انضم إلى غرفة").font(.custom("Tajawal-Black", size: 32))
+                                Text("انضم إلى غرفة").font(.custom("Lalezar-Regular", size: 32))
                                     .foregroundStyle(Color(.red))
                             }
                         }
