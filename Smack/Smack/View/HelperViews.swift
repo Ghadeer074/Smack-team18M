@@ -6,6 +6,8 @@
 //
 import SwiftUI
 
+// ============= used to add buttons =================
+
 struct ButtonView: View {
     var width: CGFloat
     var height: CGFloat
@@ -27,6 +29,29 @@ struct ButtonView: View {
                         .stroke(.black, lineWidth: 4)
                 )
         }
+    }
+}
+
+// ============= used to write big text =================
+struct TextTitle: View {
+    let text: String
+    let fontName: String
+    let size: CGFloat
+    let strokeWidth: CGFloat
+
+    var body: some View {
+        ZStack {
+            Text(text).offset(x: -strokeWidth, y: 0)
+            Text(text).offset(x: strokeWidth, y: 0)
+            Text(text).offset(x: 0, y: -strokeWidth)
+            Text(text).offset(x: 0, y: strokeWidth)
+
+            Text(text)
+                .foregroundColor(.yellow)
+        }
+        .font(.custom(fontName, size: size))
+        .foregroundColor(.black)
+        .shadow(color: .black, radius: 0, x: 4, y: 6)
     }
 }
 
