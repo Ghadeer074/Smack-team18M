@@ -11,6 +11,7 @@ import SwiftUI
 struct ButtonView: View {
     var width: CGFloat
     var height: CGFloat
+    var color: Color = .white
     
     var body: some View {
         ZStack {
@@ -22,7 +23,7 @@ struct ButtonView: View {
             
             // main rectangle
             RoundedRectangle(cornerRadius: 20)
-                .fill(.white)
+                .fill(color)
                 .frame(width: width, height: height)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
