@@ -12,13 +12,13 @@ struct ButtonView: View {
     
     var body: some View {
         ZStack {
-            // Shadow rectangle (slightly offset)
+            // shadow rectangle
             RoundedRectangle(cornerRadius: 20)
                 .fill(.black)
                 .frame(width: width, height: height)
                 .offset(x: 6, y: 6)
             
-            // Main white rectangle on top
+            // main rectangle
             RoundedRectangle(cornerRadius: 20)
                 .fill(.white)
                 .frame(width: width, height: height)
