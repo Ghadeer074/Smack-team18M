@@ -18,7 +18,7 @@ struct EnterCodeScreen: View {
             GeometryReader { geo in
                 VStack(spacing: geo.size.height * 0.05) {
                     
-                    TextTitle(text: "ادخل رقم الغرفة", fontName: "Lalezar-Regular", size: geo.size.width * 0.11, strokeWidth: 2)
+                    TextTitle(text: "ادخل رقم الغرفة", fontName: "Lalezar-Regular", size: geo.size.width * 0.11, strokeWidth: 2, color: Color(.yellow))
                     
                     // =========== TextField ===========
                     ZStack {

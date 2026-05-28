@@ -7,6 +7,14 @@
 import SwiftUI
 
 struct PlayerOrVoterScreen: View {
+    enum Choice {
+        case player, voter
+    }
+    
+    @State var userChoice: Choice?
+    
+    @State var clicked: Bool = false
+    
     var body: some View {
         
         ZStack {
@@ -15,10 +23,11 @@ struct PlayerOrVoterScreen: View {
             GeometryReader { geo in
                 
                 VStack {
-                    TextTitle(text: "حدد موقعك!", fontName: "Lalezar-Regular", size: geo.size.width * 0.11, strokeWidth: 2)
+                    TextTitle(text: "حدد موقعك!", fontName: "Lalezar-Regular", size: geo.size.width * 0.11, strokeWidth: 2, color: Color(.yellow))
                     
                     
                     Button {
+                        userChoice = Choice.player
                         
                     } label: {
                         ZStack{
@@ -37,6 +46,9 @@ struct PlayerOrVoterScreen: View {
                             
                         }
                     }
+                    
+                    
+                    
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
