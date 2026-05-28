@@ -31,8 +31,8 @@ struct PlayerOrVoterScreen: View {
                         
                     } label: {
                         ZStack{
-                            ButtonView(width: geo.size.width * 0.8, height: geo.size.width * 0.28)
-                            PlayerOrVoterCardDesign(width: geo.size.width * 0.8, emoji: "🤾🏻", title: "لاعب", subTitle: "فاجئهم بشطحاتك!")
+                            ButtonView(width: geo.size.width * 0.8, height: geo.size.width * 0.28, borderColor: userChoice == Choice.player ? Color(.red) : Color(.black))
+                            PlayerOrVoterCardDesign(width: geo.size.width * 0.8, emoji: "🤾🏻", title: "لاعب", subTitle: "فاجئهم بشطحاتك!", circleColor: userChoice == Choice.player ? Color(.red) : Color(.black))
                             
                         }
                     }
@@ -64,6 +64,7 @@ struct PlayerOrVoterCardDesign: View {
     var emoji: String
     var title: String
     var subTitle: String
+    var circleColor: Color = .black
     
     var body: some View {
         HStack {
@@ -84,7 +85,7 @@ struct PlayerOrVoterCardDesign: View {
             ZStack {
                 Circle()
                     .frame(width: width * 0.2, height: width * 0.2)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(circleColor)
                 Text(emoji)
                     .font(.system(size: width * 0.1))
             }
