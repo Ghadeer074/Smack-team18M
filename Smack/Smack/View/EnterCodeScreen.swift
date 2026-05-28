@@ -60,7 +60,7 @@ struct EnterCodeScreen: View {
                         
                     } label: {
                         ZStack {
-                            ButtonView(width: 143, height: 65, fillColor: Color(.red))
+                            ButtonView(width: geo.size.width * 0.36, height: geo.size.height * 0.08, fillColor: Color(.red))
                             
                             Text("انضم")
                                 .font(.custom("Lalezar-Regular", size: geo.size.width * 0.08))
@@ -68,6 +68,8 @@ struct EnterCodeScreen: View {
                             
                         }
                     }
+                    
+                    
                     
                     Spacer().frame(height: geo.size.height * 0.3)
                     

@@ -49,10 +49,10 @@ struct JoinOrHostScreen: View {
                         
                         ZStack {
                             
-                            ButtonView(width: 318, height: 221)
-                            VStack {
+                            ButtonView(width: geo.size.width * 0.8, height: geo.size.height * 0.27)
+                            VStack(spacing: 1){
                                 Image("JoinAGame")
-                                Text("انضم إلى غرفة").font(.custom("Lalezar-Regular", size: 32))
+                                Text("انضم إلى غرفة").font(.custom("Lalezar-Regular", size: geo.size.width * 0.09))
                                     .foregroundStyle(Color(.red))
                             }
                         }
@@ -67,10 +67,10 @@ struct JoinOrHostScreen: View {
                         
                         ZStack {
                             
-                            ButtonView(width: 318, height: 221)
-                            VStack {
+                            ButtonView(width: geo.size.width * 0.8, height: geo.size.height * 0.27)
+                            VStack(spacing: 1) {
                                 Image("HostAGame")
-                                Text("انضم إلى غرفة").font(.custom("Tajawal-Black", size: 32))
+                                Text("ابدأ  غرفة جديدة").font(.custom("Lalezar-Regular", size: geo.size.width * 0.09))
                                     .foregroundStyle(Color(.red))
                             }
                         }

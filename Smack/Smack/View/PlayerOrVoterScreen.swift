@@ -13,7 +13,7 @@ struct PlayerOrVoterScreen: View {
     
     @State var userChoice: Choice?
     
-    @State var clicked: Bool = false
+    @State private var move = false
     
     var body: some View {
         
@@ -22,33 +22,68 @@ struct PlayerOrVoterScreen: View {
             
             GeometryReader { geo in
                 
+                Image("TinyCharacter")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: geo.size.width * 0.7)
+                    .rotationEffect(.degrees(-140))
+                    .position(
+                        x: geo.size.width * 0.9,
+                        y: geo.size.height * -0.03
+                    )
+                    .offset(
+                        y: move ? -8 : 1
+                    )
+                
+                    .animation(.easeInOut(duration: 1.3)
+                        .repeatForever(autoreverses: true),
+                               value: move
+                    )
+                
+                    .onAppear {
+                        move.toggle()
+                    }
+                
                 VStack {
                     TextTitle(text: "حدد موقعك!", fontName: "Lalezar-Regular", size: geo.size.width * 0.11, strokeWidth: 2, color: Color(.yellow))
                     
                     
                     Button {
-                        userChoice = Choice.player
+                        userChoice = userChoice == Choice.player ? nil : Choice.player
                         
                     } label: {
                         ZStack{
                             ButtonView(width: geo.size.width * 0.8, height: geo.size.width * 0.28, borderColor: userChoice == Choice.player ? Color(.red) : Color(.black))
-                            PlayerOrVoterCardDesign(width: geo.size.width * 0.8, emoji: "🤾🏻", title: "لاعب", subTitle: "فاجئهم بشطحاتك!", circleColor: userChoice == Choice.player ? Color(.red) : Color(.black))
+                            PlayerOrVoterCardDesign(width: geo.size.width * 0.8, emoji: "🤾🏻", title: "لاعب", subTitle: "فاجئهم بشطحاتك !", circleColor: userChoice == Choice.player ? Color(.red) : Color(.black))
                             
                         }
                     }
                     
                     Button {
+                        userChoice = userChoice == Choice.voter ? nil : Choice.voter
                         
                     } label: {
                         ZStack{
-                            ButtonView(width: geo.size.width * 0.8, height: geo.size.width * 0.28)
-                            PlayerOrVoterCardDesign(width: geo.size.width * 0.8, emoji: "🧑🏻‍⚖️", title: "مصوّت", subTitle: "ايش الشطحة الرهيبة")
+                            ButtonView(width: geo.size.width * 0.8, height: geo.size.width * 0.28, borderColor: userChoice == Choice.voter ? Color(.red) : Color(.black))
+                            PlayerOrVoterCardDesign(width: geo.size.width * 0.8, emoji: "🧑🏻‍⚖️", title: "مصوّت", subTitle: "حدد الشطحة الرهيبة", circleColor: userChoice == Choice.voter ? Color(.red) : Color(.black))
                             
                         }
                     }
                     
+                    Spacer().frame(height: geo.size.height * 0.3)
                     
-                    
+                    Button {
+                        
+                        // here there is gonna be condition
+                        // if the userChoice == nil then the button gonna be disabled
+                        
+                    } label: {
+                        ZStack {
+                            ButtonView(width: geo.size.width * 0.5, height: geo.size.height * 0.1, fillColor: Color(.red))
+                            
+                            Text("التالي").font(.custom("Lalezar-Regular", size: geo.size.width * 0.1)).foregroundStyle(.white)
+                        }
+                    }
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
