@@ -28,7 +28,7 @@ struct ButtonView: View {
                 .frame(width: width, height: height)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(borderColor, lineWidth: 4)
+                        .stroke(.black, lineWidth: 4)
                 )
         }
     }
