@@ -39,7 +39,7 @@ struct TextTitle: View {
     let fontName: String
     let size: CGFloat
     let strokeWidth: CGFloat
-    let color: Color = .white
+    var color: Color = .white
 
     var body: some View {
         ZStack {
