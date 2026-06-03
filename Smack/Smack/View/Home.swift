@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct Home: View {
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -20,6 +20,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+   Home()
 }
 /// بجرب اسوي بوش لكومنت واشوف اذا شغال
