@@ -13,6 +13,7 @@ struct SmackApp: App {
     var body: some Scene {
         WindowGroup {
             EnterCodeScreen()
+            Home()
             
         }
     }

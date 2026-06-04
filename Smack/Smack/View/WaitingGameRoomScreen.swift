@@ -66,9 +66,7 @@ struct WaitingGameRoomScreen: View {
                         ForEach(players, id: \.self) { player in
                             VStack(spacing: 4) {
                                 ZStack {
-                                    Circle()
-                                        .stroke(.black, lineWidth: 3)
-                                        .frame(width: geo.size.width * 0.25, height: geo.size.width * 0.25)
+                                    CircleView(size: geo.size.width * 0.25)
                                     
                                     Image("PlayerAvatar")
                                         .resizable()
@@ -82,24 +80,7 @@ struct WaitingGameRoomScreen: View {
                             }
                         }
                         
-                        // empty waiting slots
-                        ForEach(0..<(maxPlayers - players.count), id: \.self) { _ in
-                            VStack(spacing: 4) {
-                                ZStack {
-                                    Circle()
-                                        .strokeBorder(style: StrokeStyle(lineWidth: 3, dash: [8]))
-                                        .foregroundStyle(.gray.opacity(0.5))
-                                        .frame(width: geo.size.width * 0.25, height: geo.size.width * 0.25)
-                                    
-                                    Text("⏳")
-                                        .font(.system(size: geo.size.width * 0.1))
-                                }
-                                
-                                Text("بانتظار...")
-                                    .font(.custom("Tajawal-Bold", size: geo.size.width * 0.04))
-                                    .foregroundStyle(.gray)
-                            }
-                        }
+                        
                         
                     }
                     .environment(\.layoutDirection, .rightToLeft)

@@ -33,6 +33,38 @@ struct ButtonView: View {
         }
     }
 }
+// ============= used to make circle buttons =================
+struct CircleView: View {
+    var size: CGFloat
+    var fillColor: Color = .white
+    var borderColor: Color = .black
+    var isDashed: Bool = false
+    
+    var body: some View {
+        ZStack {
+            // shadow circle
+            Circle()
+                .fill(borderColor)
+                .frame(width: size, height: size)
+                .offset(x: -3, y: 4)
+            
+            // main circle
+            Circle()
+                .fill(fillColor)
+                .frame(width: size, height: size)
+                .overlay(
+                    Circle()
+                        .strokeBorder(
+                            style: isDashed
+                                ? StrokeStyle(lineWidth: 3, dash: [8])
+                                : StrokeStyle(lineWidth: 3)
+                        )
+                        .foregroundStyle(borderColor)
+                )
+        }
+    }
+}
+
 
 // ============= used to write big text =================
 struct TextTitle: View {
