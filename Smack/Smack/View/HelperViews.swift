@@ -46,7 +46,7 @@ struct CircleView: View {
             Circle()
                 .fill(borderColor)
                 .frame(width: size, height: size)
-                .offset(x: 5, y: 5)
+                .offset(x: -3, y: 4)
             
             // main circle
             Circle()
