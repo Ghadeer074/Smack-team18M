@@ -1,9 +1,10 @@
 //
-//  Logic.swift
+//  generatorCode.swift
 //  Smack
 //
 //  Created by Ghadeer Fallatah on 19/11/1447 AH.
 //
+
 import Foundation
 //import Combine
 
