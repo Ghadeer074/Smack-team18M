@@ -56,7 +56,7 @@ struct CharacterCustomizationScreen: View {
                         color: Color(.yellow)
                     )
                     .rotationEffect(.degrees(-2))
-                    .padding(.top, geo.size.height * 0.02)
+                    .padding(.top, geo.size.height * 0.1)
                     
                     // ======= category selector =======
                     ZStack {
@@ -87,13 +87,14 @@ struct CharacterCustomizationScreen: View {
                                         
                                         Image(category.icon)
                                             .resizable()
-                                            .scaledToFit()
+                                            .scaledToFill()
                                             .frame(width: geo.size.width * 0.1)
                                     }
                                 }
                             }
                         }
-                    }
+                    }.padding(.bottom, geo.size.width * 0.1)
+                    
                     
                     // ======= character preview =======
                     ZStack {
@@ -103,7 +104,6 @@ struct CharacterCustomizationScreen: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: geo.size.width * 0.55)
-                            .border(.blue)
                         
                         // eyes layer
                         Image("Eyes_\(selections[.eyes] ?? 0)")
@@ -121,15 +121,14 @@ struct CharacterCustomizationScreen: View {
                         Image("Headwear_\(selections[.headwear] ?? 0)")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: geo.size.width * 0.55).border(.red)
+                            .frame(width: geo.size.width * 0.55)
                         
                     }
                     .frame(height: geo.size.height * 0.25)
                     
-                    // ======= left/right arrows for current category =======
+                    
                     HStack {
                         
-                        // previous option
                         Button {
                             changeOption(by: -1)
                         } label: {
@@ -150,7 +149,6 @@ struct CharacterCustomizationScreen: View {
                         
                         Spacer()
                         
-                        // next option
                         Button {
                             changeOption(by: 1)
                         } label: {
@@ -170,7 +168,7 @@ struct CharacterCustomizationScreen: View {
                         
                     }
                     .frame(width: geo.size.width * 0.85)
-                    .offset(y: -geo.size.height * 0.16) // bring arrows beside the character
+                    .offset(y: -geo.size.height * 0.16)
                     
                     // ======= player name label =======
                     TextTitle(
@@ -210,7 +208,7 @@ struct CharacterCustomizationScreen: View {
                             Text("التالي").font(.custom("Lalezar-Regular", size: geo.size.width * 0.085)).foregroundStyle(.white)
                         }
                     }
-                    .padding(.bottom, geo.size.height * 0.03)
+                    .padding(.bottom, geo.size.height * 0.1)
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
