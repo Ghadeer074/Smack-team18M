@@ -34,10 +34,10 @@ struct CharacterCustomizationScreen: View {
     
     // number of options available per category
     let optionCounts: [CustomizationCategory: Int] = [
-        .headwear: 4,
-        .eyes: 5,
+        .headwear: 5,
+        .eyes: 4,
         .mouth: 4,
-        .color: 6
+        .color: 5
     ]
     
     var body: some View {
@@ -103,6 +103,7 @@ struct CharacterCustomizationScreen: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: geo.size.width * 0.55)
+                            .border(.blue)
                         
                         // eyes layer
                         Image("Eyes_\(selections[.eyes] ?? 0)")
@@ -120,7 +121,7 @@ struct CharacterCustomizationScreen: View {
                         Image("Headwear_\(selections[.headwear] ?? 0)")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: geo.size.width * 0.55)
+                            .frame(width: geo.size.width * 0.55).border(.red)
                         
                     }
                     .frame(height: geo.size.height * 0.25)
