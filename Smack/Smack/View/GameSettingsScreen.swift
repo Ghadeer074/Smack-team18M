@@ -202,6 +202,18 @@ struct GameSettingsScreen: View {
                         
                         Spacer().frame(height: geo.size.height * 0.05)
                         
+                        ZStack {
+                            ButtonView(
+                                width: geo.size.width * 0.5,
+                                height: geo.size.height * 0.085,
+                                fillColor: Color(.red),
+                                borderColor: .black
+                            )
+                            Text("انطلق")
+                                .font(.custom("Lalezar-Regular", size: geo.size.width * 0.08))
+                                .foregroundStyle(.white)
+                        }
+                        
                     }
                     .frame(width: geo.size.width)
                 }
