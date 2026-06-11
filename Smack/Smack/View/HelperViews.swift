@@ -13,6 +13,7 @@ struct ButtonView: View {
     var height: CGFloat
     var fillColor: Color = .white
     var borderColor: Color = .black
+    var shadowWidth: CGFloat = 10
     
     var body: some View {
         ZStack {
@@ -20,7 +21,7 @@ struct ButtonView: View {
             RoundedRectangle(cornerRadius: 20)
                 .fill(borderColor)
                 .frame(width: width, height: height)
-                .offset(x: 10, y: 10)
+                .offset(x: shadowWidth, y: shadowWidth)
             
             // main rectangle
             RoundedRectangle(cornerRadius: 20)
