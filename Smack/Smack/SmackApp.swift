@@ -9,11 +9,14 @@ import SwiftUI
 
 @main
 struct SmackApp: App {
+    
+    init() {
+        AudioManager.shared.playMusic("GameMUsic")
+    }
 
     var body: some Scene {
         WindowGroup {
-            EnterCodeScreen()
-            Home()
+            SplashScreen()
             
         }
     }

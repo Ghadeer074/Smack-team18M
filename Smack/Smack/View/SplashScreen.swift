@@ -40,6 +40,7 @@ struct SplashScreen: View {
                         
                         Text("شرفتنا ونورتنا")
                             .font(.custom("Tajawal-Black", size: geo.size.width * 0.08))
+                            .foregroundStyle(Color(.black))
                     }
                     .offset(x: bubble1Visible ? 0 : -geo.size.width)
                     .animation(.easeOut(duration: 0.7), value: bubble1Visible)
@@ -55,7 +56,7 @@ struct SplashScreen: View {
                         .opacity(characterVisible ? 1 : 0)
                         .animation(.spring(duration: 0.5), value: characterVisible)
                         .animation(.spring(duration: 0.5), value: characterTilted)
-                        .position(x: geo.size.width * 0.5, y: geo.size.height * 0.65)
+                        .position(x: geo.size.width * 0.5, y: geo.size.height * 0.6)
                     
                     // ======= step 3 — talk bubble 2 =======
                     ZStack {
@@ -66,12 +67,13 @@ struct SplashScreen: View {
                         
                         Text("أنا أشرف")
                             .font(.custom("Tajawal-Black", size: geo.size.width * 0.08))
-                            .rotationEffect(.degrees(-3))
+                            .foregroundStyle(Color(.black))
+                            .rotationEffect(.degrees(-1))
                         
                     }
                     .opacity(bubble2Visible ? 1 : 0)
                     .animation(.easeOut(duration: 0.6), value: bubble2Visible)
-                    .position(x: geo.size.width * 0.5, y: geo.size.height * 0.38)
+                    .position(x: geo.size.width * 0.5, y: geo.size.height * 0.33)
                     
                     
                     // ======= step 6 — title =======
@@ -144,7 +146,22 @@ struct SplashScreen: View {
                     }
                     .opacity(buttonVisible ? 1 : 0)
                     .animation(.easeOut(duration: 0.5), value: buttonVisible)
-                    .position(x: geo.size.width * 0.5, y: geo.size.height * 0.88)
+                    .position(x: geo.size.width * 0.5, y: geo.size.height * 0.81)
+                    
+                    Button {
+                        
+                        
+                    } label: {
+                        ZStack {
+                            ButtonView(width: geo.size.width * 0.5, height: geo.size.height * 0.09, fillColor: Color(.red), borderColor: .black)
+                            Text("الإعدادات")
+                                .font(.custom("Lalezar-Regular", size: geo.size.width * 0.09))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .opacity(buttonVisible ? 1 : 0)
+                    .animation(.easeOut(duration: 0.5), value: buttonVisible)
+                    .position(x: geo.size.width * 0.5, y: geo.size.height * 0.93)
                     
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
