@@ -8,30 +8,30 @@
 import SwiftUI
 
 enum AppRoute: Hashable {
-    // ── onboarding ──
+    // ==== onboarding ====
     case joinOrHost
     case enterCode
     case gameSettings
 
-    // ── character ──
+    // ==== character ====
     case characterCustomization
 
-    // ── host flow ──
+    // ==== host flow ====
     case waitingGameRoom
 
-    // ── player flow ──
+    // ==== player flow ====
     case playerOrVoter
     case playerWaiting
     case votersWaiting
 
-    // ── game ──
+    // ==== game ====
     case question
     case votingScreen
     case roundWinner
     case drawScreen
     case gameWinner
 
-    // ── misc ──
+    // ==== misc ====
     case settings
     case subscription
 }
