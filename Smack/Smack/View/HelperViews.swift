@@ -91,3 +91,31 @@ struct TextTitle: View {
     }
 }
 
+
+// ============= used to add back buttons =================
+
+struct BackButton: View {
+    let geo: GeometryProxy
+    @Environment(NavigationManager.self) private var nav
+
+    var body: some View {
+        Button {
+            nav.pop()
+        } label: {
+            ZStack {
+                ButtonView(
+                    width: geo.size.width * 0.13,
+                    height: geo.size.width * 0.13,
+                    fillColor: Color(.red),
+                    borderColor: .black,
+                    shadowWidth: 4
+                )
+                Image(systemName: "chevron.left")
+                    .foregroundStyle(.white)
+                    .font(.system(size: geo.size.width * 0.05, weight: .bold))
+            }
+        }
+        .padding(.leading, geo.size.width * 0.06)
+        //.padding(.top, geo.size.height * 0.06)
+    }
+}

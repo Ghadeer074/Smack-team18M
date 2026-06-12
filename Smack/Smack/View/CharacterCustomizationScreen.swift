@@ -19,7 +19,10 @@ enum CustomizationCategory: String, CaseIterable {
     }
 }
 
+
 struct CharacterCustomizationScreen: View {
+    
+    @Environment(NavigationManager.self) private var nav
     
     @State private var playerName: String = ""
     @State private var selectedCategory: CustomizationCategory = .headwear
@@ -123,53 +126,52 @@ struct CharacterCustomizationScreen: View {
                             .scaledToFit()
                             .frame(width: geo.size.width * 0.55)
                         
+                        HStack {
+                            
+                            Button {
+                                changeOption(by: -1)
+                            } label: {
+                                ZStack {
+                                    ButtonView(
+                                        width: geo.size.width * 0.16,
+                                        height: geo.size.width * 0.16,
+                                        fillColor: Color(.red),
+                                        borderColor: Color(.black),
+                                        shadowWidth: 4
+                                    )
+                                    Image(systemName: "play.fill")
+                                        .foregroundStyle(.white)
+                                        .font(.system(size: geo.size.width * 0.05))
+                                        .rotationEffect(.degrees(180))
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            Button {
+                                changeOption(by: 1)
+                            } label: {
+                                ZStack {
+                                    ButtonView(
+                                        width: geo.size.width * 0.16,
+                                        height: geo.size.width * 0.16,
+                                        fillColor: Color(.red),
+                                        borderColor: Color(.black),
+                                        shadowWidth: 4
+                                    )
+                                    Image(systemName: "play.fill")
+                                        .foregroundStyle(.white)
+                                        .font(.system(size: geo.size.width * 0.05))
+                                }
+                            }
+                            
+                        }
+                        .frame(width: geo.size.width * 0.85)
+                        
                     }
                     .frame(height: geo.size.height * 0.25)
-                    
-                    
-                    HStack {
-                        
-                        Button {
-                            changeOption(by: -1)
-                        } label: {
-                            ZStack {
-                                ButtonView(
-                                    width: geo.size.width * 0.16,
-                                    height: geo.size.width * 0.16,
-                                    fillColor: Color(.red),
-                                    borderColor: Color(.black),
-                                    shadowWidth: 4
-                                )
-                                Image(systemName: "play.fill")
-                                    .foregroundStyle(.white)
-                                    .font(.system(size: geo.size.width * 0.05))
-                                    .rotationEffect(.degrees(180))
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        Button {
-                            changeOption(by: 1)
-                        } label: {
-                            ZStack {
-                                ButtonView(
-                                    width: geo.size.width * 0.16,
-                                    height: geo.size.width * 0.16,
-                                    fillColor: Color(.red),
-                                    borderColor: Color(.black),
-                                    shadowWidth: 4
-                                )
-                                Image(systemName: "play.fill")
-                                    .foregroundStyle(.white)
-                                    .font(.system(size: geo.size.width * 0.05))
-                            }
-                        }
-                        
-                    }
-                    .frame(width: geo.size.width * 0.85)
-                    .offset(y: -geo.size.height * 0.16)
-                    
+
+
                     // ======= player name label =======
                     TextTitle(
                         text: "اسم اللاعب:",
@@ -178,6 +180,7 @@ struct CharacterCustomizationScreen: View {
                         strokeWidth: 0.5,
                         color: Color(.yellow)
                     )
+                    .padding(.top, -geo.size.height * 0.02)
                     
                     // ======= name text field =======
                     ZStack {
@@ -199,6 +202,7 @@ struct CharacterCustomizationScreen: View {
                     
                     // ======= next button =======
                     Button {
+                        nav.push(.waitingGameRoom)
                         
                         
                     } label: {
@@ -212,8 +216,9 @@ struct CharacterCustomizationScreen: View {
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
+                BackButton(geo: geo)
             }
-        }
+        }.navigationBarHidden(true)
     }
     
     // ======= cycle through options for the selected category =======
@@ -226,5 +231,5 @@ struct CharacterCustomizationScreen: View {
 }
 
 #Preview {
-    CharacterCustomizationScreen()
+    CharacterCustomizationScreen().environment(NavigationManager())
 }

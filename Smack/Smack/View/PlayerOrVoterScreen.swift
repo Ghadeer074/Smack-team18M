@@ -7,10 +7,13 @@
 import SwiftUI
 
 struct PlayerOrVoterScreen: View {
+        
     enum Choice {
         case player, voter
     }
     
+    @Environment(NavigationManager.self) private var nav
+        
     @State var userChoice: Choice?
     
     @State private var move = false
@@ -74,6 +77,8 @@ struct PlayerOrVoterScreen: View {
                     
                     Button {
                         
+                        nav.push(.characterCustomization)
+                                                
                         // here there is gonna be condition
                         // if the userChoice == nil then the button gonna be disabled
                         
@@ -87,9 +92,11 @@ struct PlayerOrVoterScreen: View {
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
+                BackButton(geo: geo)
+                
             } // end of GeometryReader
             
-        } // end of ZStack
+        }.navigationBarHidden(true) // end of ZStack
         
     }
 }
@@ -132,5 +139,5 @@ struct PlayerOrVoterCardDesign: View {
 }
 
 #Preview {
-    PlayerOrVoterScreen()
+    PlayerOrVoterScreen().environment(NavigationManager())
 }
