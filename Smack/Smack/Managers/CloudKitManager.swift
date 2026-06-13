@@ -78,10 +78,10 @@ class CloudKitManager: ObservableObject {
         try await publicDatabase.deleteRecord(withID: recordID)
     }
     
-    // MARK: - Session Operations
+    // MARK: - session Operations
     
-    func createSession(joinCode: String, maxPlayers: Int = 8) async throws -> SessionModel {
-        let session = SessionModel(
+    func createsession(joinCode: String, maxPlayers: Int = 8) async throws -> sessionModel {
+        let session = sessionModel(
             joinCode: joinCode,
             status: "waiting",
             maxPlayers: maxPlayers
@@ -89,15 +89,15 @@ class CloudKitManager: ObservableObject {
         return try await save(session)
     }
     
-    func fetchSession(byJoinCode code: String) async throws -> SessionModel? {
+    func fetchsession(byJoinCode code: String) async throws -> sessionModel? {
         let predicate = NSPredicate(format: "join_code == %@", code)
-        let sessions: [SessionModel] = try await fetch(recordType: "Session", predicate: predicate)
+        let sessions: [sessionModel] = try await fetch(recordType: "session", predicate: predicate)
         return sessions.first
     }
     
-    func updateSessionStatus(sessionID: UUID, status: String) async throws {
+    func updatesessionStatus(sessionID: UUID, status: String) async throws {
         let predicate = NSPredicate(format: "id == %@", sessionID.uuidString)
-        let sessions: [SessionModel] = try await fetch(recordType: "Session", predicate: predicate)
+        let sessions: [sessionModel] = try await fetch(recordType: "session", predicate: predicate)
         
         guard var session = sessions.first else {
             throw CloudKitError.recordNotFound
@@ -125,7 +125,7 @@ class CloudKitManager: ObservableObject {
         return try await save(player)
     }
     
-    func fetchPlayers(forSession sessionID: UUID) async throws -> [PlayerModel] {
+    func fetchPlayers(forsession sessionID: UUID) async throws -> [PlayerModel] {
         let predicate = NSPredicate(format: "session_id == %@", sessionID.uuidString)
         return try await fetch(recordType: "Player", predicate: predicate)
     }
@@ -169,7 +169,7 @@ class CloudKitManager: ObservableObject {
         return try await save(vote)
     }
     
-    func fetchVotes(forSessionQuestion sessionQuestionID: UUID) async throws -> [VoteModel] {
+    func fetchVotes(forsessionQuestion sessionQuestionID: UUID) async throws -> [VoteModel] {
         let predicate = NSPredicate(format: "session_question_id == %@", sessionQuestionID.uuidString)
         return try await fetch(recordType: "Vote", predicate: predicate)
     }
@@ -247,10 +247,10 @@ protocol CloudKitConvertible {
 
 extension DeviceModel: CloudKitConvertible {}
 extension PlayerModel: CloudKitConvertible {}
-extension SessionModel: CloudKitConvertible {}
+extension sessionModel: CloudKitConvertible {}
 extension CategoryModel: CloudKitConvertible {}
 extension QuestionModel: CloudKitConvertible {}
-extension SessionQuestionModel: CloudKitConvertible {}
+extension sessionQuestionModel: CloudKitConvertible {}
 extension VoteModel: CloudKitConvertible {}
 extension SubscriptionModel: CloudKitConvertible {}
 extension UnlockableItemModel: CloudKitConvertible {}

@@ -1,5 +1,5 @@
 //
-//  GameSessionViewModel.swift
+//  GamesessionViewModel.swift
 //  Smack
 //  Created by Ghadeer Fallatah on 25/11/1447 AH.
 //
@@ -9,11 +9,11 @@ import SwiftUI
 internal import Combine
 
 @MainActor
-class GameSessionViewModel: ObservableObject {
-    @Published var session: SessionModel?
+class GamesessionViewModel: ObservableObject {
+    @Published var session: sessionModel?
     @Published var players: [PlayerModel] = []
     @Published var currentQuestion: QuestionModel?
-    @Published var sessionQuestions: [SessionQuestionModel] = []
+    @Published var sessionQuestions: [sessionQuestionModel] = []
     @Published var votes: [VoteModel] = []
     @Published var gameState: GameState = .lobby
     @Published var errorMessage: String?
@@ -33,18 +33,18 @@ class GameSessionViewModel: ObservableObject {
     
     // MARK: - Host Functions
     
-    func createSession(maxPlayers: Int = 8) async {
+    func createsession(maxPlayers: Int = 8) async {
         isLoading = true
         errorMessage = nil
         
         do {
             let code = generatorCode()
-            let newSession = try await cloudKit.createSession(joinCode: code, maxPlayers: maxPlayers)
-            session = newSession
+            let newsession = try await cloudKit.createsession(joinCode: code, maxPlayers: maxPlayers)
+            session = newsession
             
             // Add host as player
             let host = try await cloudKit.addPlayer(
-                sessionID: newSession.id,
+                sessionID: newsession.id,
                 deviceID: deviceManager.deviceID,
                 username: generateUsername(),
                 isHost: true
@@ -68,7 +68,7 @@ class GameSessionViewModel: ObservableObject {
         isLoading = true
         
         do {
-            try await cloudKit.updateSessionStatus(sessionID: session.id, status: "playing")
+            try await cloudKit.updatesessionStatus(sessionID: session.id, status: "playing")
             
             // Load questions for the game
             await loadQuestions()
@@ -86,7 +86,7 @@ class GameSessionViewModel: ObservableObject {
         guard let session = session else { return }
         
         do {
-            try await cloudKit.updateSessionStatus(sessionID: session.id, status: "ended")
+            try await cloudKit.updatesessionStatus(sessionID: session.id, status: "ended")
             gameState = .ended
             stopPlayerPolling()
         } catch {
@@ -96,39 +96,39 @@ class GameSessionViewModel: ObservableObject {
     
     // MARK: - Player Functions
     
-    func joinSession(withCode code: String, username: String) async {
+    func joinsession(withCode code: String, username: String) async {
         isLoading = true
         errorMessage = nil
         
         do {
-            guard let foundSession = try await cloudKit.fetchSession(byJoinCode: code.uppercased()) else {
-                errorMessage = "Session not found"
+            guard let foundsession = try await cloudKit.fetchsession(byJoinCode: code.uppercased()) else {
+                errorMessage = "session not found"
                 isLoading = false
                 return
             }
             
-            guard foundSession.status == "waiting" else {
+            guard foundsession.status == "waiting" else {
                 errorMessage = "Game already started"
                 isLoading = false
                 return
             }
             
             // Check if session is full
-            let existingPlayers = try await cloudKit.fetchPlayers(forSession: foundSession.id)
-            guard existingPlayers.count < foundSession.maxPlayers else {
-                errorMessage = "Session is full"
+            let existingPlayers = try await cloudKit.fetchPlayers(forsession: foundsession.id)
+            guard existingPlayers.count < foundsession.maxPlayers else {
+                errorMessage = "session is full"
                 isLoading = false
                 return
             }
             
             // Join as player
             let player = try await cloudKit.addPlayer(
-                sessionID: foundSession.id,
+                sessionID: foundsession.id,
                 deviceID: deviceManager.deviceID,
                 username: username
             )
             
-            session = foundSession
+            session = foundsession
             players = existingPlayers + [player]
             gameState = .lobby
             
@@ -142,7 +142,7 @@ class GameSessionViewModel: ObservableObject {
         isLoading = false
     }
     
-    func leaveSession() {
+    func leavesession() {
         session = nil
         players = []
         gameState = .lobby
@@ -163,7 +163,7 @@ class GameSessionViewModel: ObservableObject {
             
             // Create session questions
             for (index, question) in selectedQuestions.enumerated() {
-                let sessionQuestion = SessionQuestionModel(
+                let sessionQuestion = sessionQuestionModel(
                     sessionID: session.id,
                     questionID: question.id,
                     roundNumber: index + 1
@@ -199,14 +199,14 @@ class GameSessionViewModel: ObservableObject {
     
     func submitVote(for playerID: UUID) async {
         guard let session = session,
-              let currentSessionQuestion = sessionQuestions.first(where: { $0.roundNumber == session.roundCount + 1 }),
+              let currentsessionQuestion = sessionQuestions.first(where: { $0.roundNumber == session.roundCount + 1 }),
               let currentPlayer = players.first(where: { $0.deviceID == deviceManager.deviceID }) else {
             return
         }
         
         do {
             let vote = try await cloudKit.submitVote(
-                sessionQuestionID: currentSessionQuestion.id,
+                sessionQuestionID: currentsessionQuestion.id,
                 voterID: currentPlayer.id,
                 votedForID: playerID
             )
@@ -220,7 +220,7 @@ class GameSessionViewModel: ObservableObject {
     
     func loadVotes(for sessionQuestionID: UUID) async {
         do {
-            votes = try await cloudKit.fetchVotes(forSessionQuestion: sessionQuestionID)
+            votes = try await cloudKit.fetchVotes(forsessionQuestion: sessionQuestionID)
         } catch {
             errorMessage = "Failed to load votes: \(error.localizedDescription)"
         }
@@ -247,7 +247,7 @@ class GameSessionViewModel: ObservableObject {
         guard let session = session else { return }
         
         do {
-            players = try await cloudKit.fetchPlayers(forSession: session.id)
+            players = try await cloudKit.fetchPlayers(forsession: session.id)
         } catch {
             print("Failed to refresh players: \(error.localizedDescription)")
         }

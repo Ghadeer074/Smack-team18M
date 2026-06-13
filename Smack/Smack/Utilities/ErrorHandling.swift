@@ -135,7 +135,7 @@ class LocalCacheManager: ObservableObject {
     
     // Cache keys
     private enum CacheKey: String {
-        case lastSession
+        case lastsession
         case cachedPlayers
         case cachedQuestions
         case pendingVotes
@@ -143,24 +143,24 @@ class LocalCacheManager: ObservableObject {
     
     private init() {}
     
-    // MARK: - Session Cache
+    // MARK: - session Cache
     
-    func cacheSession(_ session: SessionModel) {
+    func cachesession(_ session: sessionModel) {
         if let encoded = try? JSONEncoder().encode(session) {
-            defaults.set(encoded, forKey: CacheKey.lastSession.rawValue)
+            defaults.set(encoded, forKey: CacheKey.lastsession.rawValue)
         }
     }
     
-    func getCachedSession() -> SessionModel? {
-        guard let data = defaults.data(forKey: CacheKey.lastSession.rawValue),
-              let session = try? JSONDecoder().decode(SessionModel.self, from: data) else {
+    func getCachedsession() -> sessionModel? {
+        guard let data = defaults.data(forKey: CacheKey.lastsession.rawValue),
+              let session = try? JSONDecoder().decode(sessionModel.self, from: data) else {
             return nil
         }
         return session
     }
     
-    func clearSessionCache() {
-        defaults.removeObject(forKey: CacheKey.lastSession.rawValue)
+    func clearsessionCache() {
+        defaults.removeObject(forKey: CacheKey.lastsession.rawValue)
     }
     
     // MARK: - Players Cache
@@ -230,7 +230,7 @@ class LocalCacheManager: ObservableObject {
     // MARK: - Clear All Cache
     
     func clearAllCache() {
-        clearSessionCache()
+        clearsessionCache()
         defaults.removeObject(forKey: CacheKey.cachedPlayers.rawValue)
         defaults.removeObject(forKey: CacheKey.cachedQuestions.rawValue)
         clearPendingVotes()

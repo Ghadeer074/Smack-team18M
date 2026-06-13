@@ -32,7 +32,7 @@ class SubscriptionManager: ObservableObject {
         await requestNotificationPermission()
         await registerForPushNotifications()
         await subscribeToPlayerChanges()
-        await subscribeToSessionChanges()
+        await subscribeTosessionChanges()
         await subscribeToVoteChanges()
     }
     
@@ -112,15 +112,15 @@ class SubscriptionManager: ObservableObject {
         }
     }
     
-    // MARK: - Session Subscriptions
+    // MARK: - session Subscriptions
     
-    func subscribeToSessionChanges() async {
+    func subscribeTosessionChanges() async {
         let subscriptionID = "session-changes"
         
         let predicate = NSPredicate(value: true)
         
         let subscription = CKQuerySubscription(
-            recordType: "Session",
+            recordType: "session",
             predicate: predicate,
             subscriptionID: subscriptionID,
             options: [.firesOnRecordUpdate]
@@ -133,9 +133,9 @@ class SubscriptionManager: ObservableObject {
         
         do {
             _ = try await publicDatabase.save(subscription)
-            print("✅ Subscribed to Session changes")
+            print("✅ Subscribed to session changes")
         } catch {
-            print("❌ Failed to subscribe to Session changes: \(error)")
+            print("❌ Failed to subscribe to session changes: \(error)")
         }
     }
     
@@ -166,16 +166,16 @@ class SubscriptionManager: ObservableObject {
         }
     }
     
-    // MARK: - Subscribe to Specific Session
+    // MARK: - Subscribe to Specific session
     
-    func subscribeToSession(sessionID: UUID) async {
+    func subscribeTosession(sessionID: UUID) async {
         let subscriptionID = "session-\(sessionID.uuidString)"
         
         // Only get updates for this specific session
         let predicate = NSPredicate(format: "id == %@", sessionID.uuidString)
         
         let subscription = CKQuerySubscription(
-            recordType: "Session",
+            recordType: "session",
             predicate: predicate,
             subscriptionID: subscriptionID,
             options: [.firesOnRecordUpdate]
@@ -194,7 +194,7 @@ class SubscriptionManager: ObservableObject {
         }
     }
     
-    func unsubscribeFromSession(sessionID: UUID) async {
+    func unsubscribeFromsession(sessionID: UUID) async {
         let subscriptionID = "session-\(sessionID.uuidString)"
         
         do {
@@ -319,13 +319,13 @@ extension SubscriptionManager {
      }
  }
  
- في GameSessionViewModel.swift:
+ في GamesessionViewModel.swift:
  
- func joinSession(withCode code: String, username: String) async {
+ func joinsession(withCode code: String, username: String) async {
      // ... existing code ...
      
      // Subscribe to this specific session
-     await CloudKitSubscriptionManager.shared.subscribeToSession(sessionID: foundSession.id)
+     await CloudKitSubscriptionManager.shared.subscribeTosession(sessionID: foundsession.id)
      
      // Listen for updates
      NotificationCenter.default.addObserver(
@@ -334,7 +334,7 @@ extension SubscriptionManager {
          queue: .main
      ) { [weak self] _ in
          Task {
-             await self?.refreshSession()
+             await self?.refreshsession()
          }
      }
  }

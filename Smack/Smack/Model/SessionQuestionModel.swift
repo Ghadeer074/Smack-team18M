@@ -1,5 +1,5 @@
 //
-//  SessionQuestionModel.swift
+//  sessionQuestionModel.swift
 //  Smack
 //
 //  Created by Ghadeer Fallatah on 24/11/1447 AH.
@@ -8,7 +8,7 @@
 import Foundation
 import CloudKit
 
-struct SessionQuestionModel: Identifiable, Codable {
+struct sessionQuestionModel: Identifiable, Codable {
     var id: UUID
     var sessionID: UUID
     var questionID: UUID
@@ -61,8 +61,8 @@ struct SessionQuestionModel: Identifiable, Codable {
     
     // Convert to CKRecord
     func toCKRecord() -> CKRecord {
-        let record = recordID.map { CKRecord(recordType: "SessionQuestion", recordID: $0) } 
-                     ?? CKRecord(recordType: "SessionQuestion")
+        let record = recordID.map { CKRecord(recordType: "sessionQuestion", recordID: $0) } 
+                     ?? CKRecord(recordType: "sessionQuestion")
         
         record["id"] = id.uuidString as CKRecordValue
         record["session_id"] = sessionID.uuidString as CKRecordValue
