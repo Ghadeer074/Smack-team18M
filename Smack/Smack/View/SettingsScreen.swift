@@ -10,7 +10,6 @@ struct SettingsScreen: View {
 
     @Environment(NavigationManager.self) private var nav
 
-    // bound directly to AudioManager's @AppStorage values
     @State private var musicOn: Bool = AudioManager.shared.musicEnabled
     @State private var soundOn: Bool = AudioManager.shared.sfxEnabled
 
@@ -84,7 +83,7 @@ struct SettingsScreen: View {
 
                     // ======= support button =======
                     Button {
-                        if let url = URL(string: "https://forms.google.com") {
+                        if let url = URL(string: "https://forms.gle/TvUDhsWy6LY32viu8") {
                             UIApplication.shared.open(url)
                         }
                     } label: {
