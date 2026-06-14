@@ -13,6 +13,7 @@ struct VoteModel: Identifiable, Codable {
     var sessionQuestionID: UUID
     var voterParticipantID: UUID
     var votedForParticipantID: UUID
+    var answerID: UUID
     var votedAt: Date
     
     // CloudKit Record
@@ -25,6 +26,7 @@ struct VoteModel: Identifiable, Codable {
         case voterParticipantID
         case votedForParticipantID
         case votedAt
+        case answerID
     }
     
     init(
@@ -32,13 +34,15 @@ struct VoteModel: Identifiable, Codable {
         sessionQuestionID: UUID,
         voterParticipantID: UUID,
         votedForParticipantID: UUID,
-        votedAt: Date = Date()
+        votedAt: Date = Date(),
+        answerID: UUID
     ) {
         self.id = id
         self.sessionQuestionID = sessionQuestionID
         self.voterParticipantID = voterParticipantID
         self.votedForParticipantID = votedForParticipantID
         self.votedAt = votedAt
+        self.answerID = answerID
     }
     
     // Convert from CKRecord
@@ -50,6 +54,9 @@ struct VoteModel: Identifiable, Codable {
               let votedAt = record["voted_at"] as? Date else {
             return nil
         }
+        
+        guard let answerID = record["answer_id"] as? String else { return nil }
+        self.answerID = UUID(uuidString: answerID) ?? UUID()
         
         self.id = UUID(uuidString: id) ?? UUID()
         self.sessionQuestionID = UUID(uuidString: sessionQuestionID) ?? UUID()
@@ -69,6 +76,8 @@ struct VoteModel: Identifiable, Codable {
         record["voter_participant_id"] = voterParticipantID.uuidString as CKRecordValue
         record["voted_for_participant_id"] = votedForParticipantID.uuidString as CKRecordValue
         record["voted_at"] = votedAt as CKRecordValue
+        
+        record["answer_id"] = answerID.uuidString as CKRecordValue
         
         return record
     }

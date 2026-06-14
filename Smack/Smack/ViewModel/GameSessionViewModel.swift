@@ -16,6 +16,7 @@ class GamesessionViewModel: ObservableObject {
     @Published var sessionQuestions: [sessionQuestionModel] = []
     @Published var username: String = ""
     @Published var votes: [VoteModel] = []
+    @Published var answers: [AnswerModel] = []
     @Published var gameState: GameState = .lobby
     @Published var errorMessage: String?
     @Published var isLoading = false
@@ -43,7 +44,6 @@ class GamesessionViewModel: ObservableObject {
             let newsession = try await cloudKit.createsession(joinCode: code, maxPlayers: maxPlayers)
             session = newsession
             
-            // Add host as player
             let host = try await cloudKit.addPlayer(
                 sessionID: newsession.id,
                 deviceID: deviceManager.deviceID,
@@ -53,8 +53,6 @@ class GamesessionViewModel: ObservableObject {
             
             players = [host]
             gameState = .lobby
-            
-            // Start polling for new players
             startPlayerPolling()
             
         } catch {
@@ -70,10 +68,7 @@ class GamesessionViewModel: ObservableObject {
         
         do {
             try await cloudKit.updatesessionStatus(sessionID: session.id, status: "playing")
-            
-            // Load questions for the game
             await loadQuestions()
-            
             gameState = .answering
             
         } catch {
@@ -114,7 +109,6 @@ class GamesessionViewModel: ObservableObject {
                 return
             }
             
-            // Check if session is full
             let existingPlayers = try await cloudKit.fetchPlayers(forsession: foundsession.id)
             guard existingPlayers.count < foundsession.maxPlayers else {
                 errorMessage = "session is full"
@@ -122,7 +116,6 @@ class GamesessionViewModel: ObservableObject {
                 return
             }
             
-            // Join as player
             let player = try await cloudKit.addPlayer(
                 sessionID: foundsession.id,
                 deviceID: deviceManager.deviceID,
@@ -132,8 +125,6 @@ class GamesessionViewModel: ObservableObject {
             session = foundsession
             players = existingPlayers + [player]
             gameState = .lobby
-            
-            // Start polling for updates
             startPlayerPolling()
             
         } catch {
@@ -146,6 +137,8 @@ class GamesessionViewModel: ObservableObject {
     func leavesession() {
         session = nil
         players = []
+        answers = []
+        votes = []
         gameState = .lobby
         stopPlayerPolling()
     }
@@ -158,7 +151,6 @@ class GamesessionViewModel: ObservableObject {
         do {
             let unansweredQuestions = try await cloudKit.fetchUnansweredQuestions(forSession: session.id)
             
-            // if no unanswered questions exist yet, fetch free questions and create them
             if unansweredQuestions.isEmpty {
                 let allQuestions = try await cloudKit.fetchFreeQuestions()
                 let selectedQuestions = allQuestions.shuffled().prefix(10)
@@ -194,27 +186,56 @@ class GamesessionViewModel: ObservableObject {
             let predicate = NSPredicate(format: "id == %@", sessionQuestion.questionID.uuidString)
             let questions: [QuestionModel] = try await cloudKit.fetch(recordType: "Question", predicate: predicate)
             currentQuestion = questions.first
+            answers = [] // reset answers for new question
         } catch {
             errorMessage = "Failed to load question: \(error.localizedDescription)"
         }
     }
     
+    // MARK: - Answer Functions
     
-    
-    func submitVote(for playerID: UUID) async {
-        guard let session = session,
-              let currentsessionQuestion = sessionQuestions.first(where: { $0.roundNumber == session.roundCount + 1 }),
-              let currentPlayer = players.first(where: { $0.deviceID == deviceManager.deviceID }) else {
-            return
+    func submitAnswer(content: String) async {
+        guard let currentPlayer = currentPlayer,
+              let currentSessionQuestion = sessionQuestions.first(where: {
+                  $0.roundNumber == (session?.roundCount ?? 0) + 1
+              }) else { return }
+        
+        do {
+            let answer = try await cloudKit.submitAnswer(
+                sessionQuestionID: currentSessionQuestion.id,
+                playerID: currentPlayer.id,
+                content: content
+            )
+            answers.append(answer)
+            gameState = .voting
+            
+        } catch {
+            errorMessage = "Failed to submit answer: \(error.localizedDescription)"
         }
+    }
+    
+    func loadAnswers(for sessionQuestionID: UUID) async {
+        do {
+            answers = try await cloudKit.fetchAnswers(forSessionQuestion: sessionQuestionID)
+        } catch {
+            errorMessage = "Failed to load answers: \(error.localizedDescription)"
+        }
+    }
+    
+    // MARK: - Vote Functions
+    
+    func submitVote(forAnswer answerID: UUID) async {
+        guard let currentPlayer = currentPlayer,
+              let currentSessionQuestion = sessionQuestions.first(where: {
+                  $0.roundNumber == (session?.roundCount ?? 0) + 1
+              }) else { return }
         
         do {
             let vote = try await cloudKit.submitVote(
-                sessionQuestionID: currentsessionQuestion.id,
+                sessionQuestionID: currentSessionQuestion.id,
                 voterID: currentPlayer.id,
-                votedForID: playerID
+                answerID: answerID
             )
-            
             votes.append(vote)
             
         } catch {
@@ -222,13 +243,22 @@ class GamesessionViewModel: ObservableObject {
         }
     }
     
+    func loadVotes(for sessionQuestionID: UUID) async {
+        do {
+            votes = try await cloudKit.fetchVotes(forsessionQuestion: sessionQuestionID)
+        } catch {
+            errorMessage = "Failed to load votes: \(error.localizedDescription)"
+        }
+    }
+    
     func calculateWinner() async -> PlayerModel? {
         var voteCounts: [UUID: Int] = [:]
         
         do {
-            for player in players {
-                let votes = try await cloudKit.fetchVotes(forPlayer: player.id)
-                voteCounts[player.id] = votes.count
+            for answer in answers {
+                let answerVotes = try await cloudKit.fetchVotes(forsessionQuestion: answer.sessionQuestionID)
+                let votesForThisAnswer = answerVotes.filter { $0.answerID == answer.id }
+                voteCounts[answer.playerID, default: 0] += votesForThisAnswer.count
             }
             
             return players.max(by: {
@@ -238,14 +268,6 @@ class GamesessionViewModel: ObservableObject {
         } catch {
             errorMessage = "Failed to calculate winner: \(error.localizedDescription)"
             return nil
-        }
-    }
-    
-    func loadVotes(for sessionQuestionID: UUID) async {
-        do {
-            votes = try await cloudKit.fetchVotes(forsessionQuestion: sessionQuestionID)
-        } catch {
-            errorMessage = "Failed to load votes: \(error.localizedDescription)"
         }
     }
     
@@ -276,8 +298,6 @@ class GamesessionViewModel: ObservableObject {
         }
     }
     
-    // Helpers
-  
     // MARK: - Computed Properties
     
     var currentPlayer: PlayerModel? {

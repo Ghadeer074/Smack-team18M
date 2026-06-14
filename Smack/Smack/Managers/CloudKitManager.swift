@@ -159,17 +159,44 @@ class CloudKitManager: ObservableObject {
         return try await fetch(recordType: "Question", predicate: predicate)
     }
     
+    
+    // MARK: - Answer Operations
+
+    func submitAnswer(
+        sessionQuestionID: UUID,
+        playerID: UUID,
+        content: String
+    ) async throws -> AnswerModel {
+        let answer = AnswerModel(
+            sessionQuestionID: sessionQuestionID,
+            playerID: playerID,
+            content: content
+        )
+        return try await save(answer)
+    }
+
+    func fetchAnswers(forSessionQuestion sessionQuestionID: UUID) async throws -> [AnswerModel] {
+        let predicate = NSPredicate(format: "session_question_id == %@", sessionQuestionID.uuidString)
+        return try await fetch(recordType: "Answer", predicate: predicate)
+    }
+    
+    func fetchVotes(forAnswer answerID: UUID) async throws -> [VoteModel] {
+        let predicate = NSPredicate(format: "answer_id == %@", answerID.uuidString)
+        return try await fetch(recordType: "Vote", predicate: predicate)
+    }
+    
     // MARK: - Vote Operations
     
     func submitVote(
         sessionQuestionID: UUID,
         voterID: UUID,
-        votedForID: UUID
+        answerID: UUID
     ) async throws -> VoteModel {
         let vote = VoteModel(
             sessionQuestionID: sessionQuestionID,
             voterParticipantID: voterID,
-            votedForParticipantID: votedForID
+            votedForParticipantID: voterID, //not used anymore but kept to avoid breaking schema
+            answerID: answerID
         )
         return try await save(vote)
     }
@@ -277,6 +304,7 @@ extension VoteModel: CloudKitConvertible {}
 extension SubscriptionModel: CloudKitConvertible {}
 extension UnlockableItemModel: CloudKitConvertible {}
 extension PurchaseModel: CloudKitConvertible {}
+extension AnswerModel: CloudKitConvertible {}
 
 // MARK: - Custom Errors
 
@@ -295,5 +323,6 @@ enum CloudKitError: LocalizedError {
             return "Not signed in to iCloud"
         }
     }
+    
 }
 
