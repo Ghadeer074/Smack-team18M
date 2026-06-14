@@ -13,6 +13,8 @@ struct WaitingGameRoomScreen: View {
     
     @State private var move = false
     
+    @Environment(NavigationManager.self) private var nav
+    
     var body: some View {
         
         ZStack {
@@ -138,13 +140,16 @@ struct WaitingGameRoomScreen: View {
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
+                BackButton(geo: geo)
+                
             }
             
-        }
+        }.navigationBarHidden(true)
         
     }
 }
 
 #Preview {
-    WaitingGameRoomScreen()
+    WaitingGameRoomScreen().environment(NavigationManager())
+
 }

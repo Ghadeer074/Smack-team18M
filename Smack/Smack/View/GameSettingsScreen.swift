@@ -20,9 +20,9 @@ struct GameSettingsScreen: View {
         ("📜", "تاريخ"), ("🧪", "علوم"), ("🌍", "عامة"),
         ("📺", "دراما"), ("⚽️", "رياضة"), ("🎬", "أفلام")
     ]
-    @State private var selectedCategory: String = ""
-    @State private var playerCount = 0
-    @State private var roundCount = 0
+    @State private var selectedCategory: String = "عامة"
+    @State private var playerCount = 4
+    @State private var roundCount = 3
 
     var body: some View {
         ZStack {
@@ -37,11 +37,10 @@ struct GameSettingsScreen: View {
                     ScrollView {
                         VStack(spacing: geo.size.height * 0.025) {
 
-                            // top padding so content clears the fixed header
                             Spacer()
                                 .frame(height: headerHeight)
 
-                            // ── mode label ──
+                            // ====== mode label =====
                             TextTitle(
                                 text: "الطور:",
                                 fontName: "Lalezar-Regular",
@@ -51,7 +50,7 @@ struct GameSettingsScreen: View {
                             )
                             .frame(width: geo.size.width * 0.85, alignment: .trailing)
 
-                            // ── mode selection ──
+                            // ===== mode selection =====
                             HStack(spacing: geo.size.width * 0.04) {
 
                                 Button {
@@ -102,7 +101,7 @@ struct GameSettingsScreen: View {
                             }
                             .frame(width: geo.size.width * 0.85)
 
-                            // ── categories label ──
+                            // ===== categories label =====
                             TextTitle(
                                 text: "الفئات:",
                                 fontName: "Lalezar-Regular",
@@ -113,7 +112,7 @@ struct GameSettingsScreen: View {
                             .frame(width: geo.size.width * 0.85, alignment: .trailing)
                             .padding(.top, geo.size.height * 0.01)
 
-                            // ── categories grid ──
+                            // ===== categories grid =====
                             LazyVGrid(
                                 columns: [
                                     GridItem(.flexible()),
@@ -124,7 +123,7 @@ struct GameSettingsScreen: View {
                             ) {
                                 ForEach(categories, id: \.name) { category in
                                     Button {
-                                        selectedCategory = selectedCategory == category.name ? "" : category.name
+                                        selectedCategory = category.name
                                     } label: {
                                         ZStack {
                                             ButtonView(
@@ -149,7 +148,7 @@ struct GameSettingsScreen: View {
                             }
                             .frame(width: geo.size.width * 0.85)
 
-                            // ── player count ──
+                            // ===== player count =====
                             TextTitle(
                                 text: "عدد اللاعبين:",
                                 fontName: "Lalezar-Regular",
@@ -162,12 +161,12 @@ struct GameSettingsScreen: View {
 
                             StepperView(
                                 value: $playerCount,
-                                minValue: 0,
+                                minValue: 4,
                                 maxValue: 12,
                                 geo: geo
                             )
 
-                            // ── round count ──
+                            // ===== round count =====
                             TextTitle(
                                 text: "عدد الجولات:",
                                 fontName: "Lalezar-Regular",
@@ -180,17 +179,18 @@ struct GameSettingsScreen: View {
 
                             StepperView(
                                 value: $roundCount,
-                                minValue: 0,
-                                maxValue: 20,
+                                minValue: 3,
+                                maxValue: 10,
                                 geo: geo
                             )
 
                             Spacer()
                                 .frame(height: geo.size.height * 0.05)
 
-                            // ── انطلق button ──
+                            // ===== انطلق button =====
                             Button {
                                 nav.push(.characterCustomization)
+                                AudioManager.shared.playSound(SoundsList.popSound[0], fileExtension: SoundsList.popSound[1])
                             } label: {
                                 ZStack {
                                     ButtonView(
@@ -212,7 +212,7 @@ struct GameSettingsScreen: View {
                         .frame(width: geo.size.width)
                     }
 
-                    // ── fixed header ──
+                    // ===== fixed header =====
                     VStack(spacing: 0) {
 
                         HStack {
@@ -230,7 +230,6 @@ struct GameSettingsScreen: View {
 
                             Spacer()
 
-                            // keeps title centered
                             Color.clear
                                 .frame(
                                     width: geo.size.width * 0.12,

@@ -19,6 +19,8 @@ struct SplashScreen: View {
     @State private var starsVisible = false
     @State private var buttonVisible = false
 
+    @State private var hasAnimated = false
+
     var body: some View {
         ZStack {
             Color(.blue).ignoresSafeArea()
@@ -115,6 +117,7 @@ struct SplashScreen: View {
                     // ======== انطلق button ========
                     Button {
                         nav.push(.joinOrHost)
+                        AudioManager.shared.playSound(SoundsList.popSound[0], fileExtension: SoundsList.popSound[1])
                     } label: {
                         ZStack {
                             ButtonView(width: geo.size.width * 0.5, height: geo.size.height * 0.09, fillColor: Color(.red), borderColor: .black)
@@ -130,6 +133,7 @@ struct SplashScreen: View {
                     // ======== الإعدادات button ========
                     Button {
                         nav.push(.settings)
+                        AudioManager.shared.playSound(SoundsList.popSound[0], fileExtension: SoundsList.popSound[1])
                     } label: {
                         ZStack {
                             ButtonView(width: geo.size.width * 0.5, height: geo.size.height * 0.09, fillColor: Color(.red), borderColor: .black)
@@ -147,6 +151,10 @@ struct SplashScreen: View {
         }
         .navigationBarHidden(true)
         .onAppear {
+            
+            guard !hasAnimated else { return }
+            hasAnimated = true
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3)  { bubble1Visible = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.3)  { bubble1Visible = false }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5)  { characterVisible = true }

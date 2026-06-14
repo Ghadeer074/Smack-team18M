@@ -101,6 +101,7 @@ struct BackButton: View {
     var body: some View {
         Button {
             nav.pop()
+            AudioManager.shared.playSound(SoundsList.popSound[0], fileExtension: SoundsList.popSound[1])
         } label: {
             ZStack {
                 ButtonView(

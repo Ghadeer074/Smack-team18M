@@ -14,7 +14,7 @@ struct SmackApp: App {
     @State private var nav = NavigationManager()
 
     init() {
-        AudioManager.shared.playMusic("GameMUsic")
+        AudioManager.shared.playMusic("GameMusic")
     }
 
     var body: some Scene {

@@ -14,7 +14,7 @@ struct PlayerOrVoterScreen: View {
     
     @Environment(NavigationManager.self) private var nav
         
-    @State var userChoice: Choice?
+    @State var userChoice: Choice = .player
     
     @State private var move = false
     
@@ -52,7 +52,7 @@ struct PlayerOrVoterScreen: View {
                     
                     
                     Button {
-                        userChoice = userChoice == Choice.player ? nil : Choice.player
+                        userChoice = Choice.player
                         
                     } label: {
                         ZStack{
@@ -63,7 +63,7 @@ struct PlayerOrVoterScreen: View {
                     }
                     
                     Button {
-                        userChoice = userChoice == Choice.voter ? nil : Choice.voter
+                        userChoice = Choice.voter
                         
                     } label: {
                         ZStack{
@@ -78,9 +78,7 @@ struct PlayerOrVoterScreen: View {
                     Button {
                         
                         nav.push(.characterCustomization)
-                                                
-                        // here there is gonna be condition
-                        // if the userChoice == nil then the button gonna be disabled
+                        AudioManager.shared.playSound(SoundsList.popSound[0], fileExtension: SoundsList.popSound[1])
                         
                     } label: {
                         ZStack {

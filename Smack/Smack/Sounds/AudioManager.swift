@@ -9,6 +9,10 @@ import SwiftUI
 import AVFoundation
 internal import Combine
 
+struct SoundsList {
+    static let popSound = ["CharPopSound", "mp3"]
+    static let GameMusic = ["GameMUsic", "mp3"]
+}
 
 final class AudioManager: ObservableObject {
     static let shared = AudioManager()
