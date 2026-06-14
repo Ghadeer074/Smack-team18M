@@ -14,6 +14,7 @@ class GamesessionViewModel: ObservableObject {
     @Published var players: [PlayerModel] = []
     @Published var currentQuestion: QuestionModel?
     @Published var sessionQuestions: [sessionQuestionModel] = []
+    @Published var username: String = ""
     @Published var votes: [VoteModel] = []
     @Published var gameState: GameState = .lobby
     @Published var errorMessage: String?
@@ -46,7 +47,7 @@ class GamesessionViewModel: ObservableObject {
             let host = try await cloudKit.addPlayer(
                 sessionID: newsession.id,
                 deviceID: deviceManager.deviceID,
-                username: generateUsername(),
+                username: username,
                 isHost: true
             )
             
@@ -155,25 +156,26 @@ class GamesessionViewModel: ObservableObject {
         guard let session = session else { return }
         
         do {
-            // Fetch free questions for now
-            let allQuestions = try await cloudKit.fetchFreeQuestions()
+            let unansweredQuestions = try await cloudKit.fetchUnansweredQuestions(forSession: session.id)
             
-            // Randomly select questions
-            let selectedQuestions = allQuestions.shuffled().prefix(10)
-            
-            // Create session questions
-            for (index, question) in selectedQuestions.enumerated() {
-                let sessionQuestion = sessionQuestionModel(
-                    sessionID: session.id,
-                    questionID: question.id,
-                    roundNumber: index + 1
-                )
+            // if no unanswered questions exist yet, fetch free questions and create them
+            if unansweredQuestions.isEmpty {
+                let allQuestions = try await cloudKit.fetchFreeQuestions()
+                let selectedQuestions = allQuestions.shuffled().prefix(10)
                 
-                let saved = try await cloudKit.save(sessionQuestion)
-                sessionQuestions.append(saved)
+                for (index, question) in selectedQuestions.enumerated() {
+                    let sessionQuestion = sessionQuestionModel(
+                        sessionID: session.id,
+                        questionID: question.id,
+                        roundNumber: index + 1
+                    )
+                    let saved = try await cloudKit.save(sessionQuestion)
+                    sessionQuestions.append(saved)
+                }
+            } else {
+                sessionQuestions = unansweredQuestions
             }
             
-            // Load first question
             if let firstQuestion = sessionQuestions.first {
                 await loadQuestion(sessionQuestionID: firstQuestion.id)
             }
@@ -197,6 +199,8 @@ class GamesessionViewModel: ObservableObject {
         }
     }
     
+    
+    
     func submitVote(for playerID: UUID) async {
         guard let session = session,
               let currentsessionQuestion = sessionQuestions.first(where: { $0.roundNumber == session.roundCount + 1 }),
@@ -215,6 +219,25 @@ class GamesessionViewModel: ObservableObject {
             
         } catch {
             errorMessage = "Failed to submit vote: \(error.localizedDescription)"
+        }
+    }
+    
+    func calculateWinner() async -> PlayerModel? {
+        var voteCounts: [UUID: Int] = [:]
+        
+        do {
+            for player in players {
+                let votes = try await cloudKit.fetchVotes(forPlayer: player.id)
+                voteCounts[player.id] = votes.count
+            }
+            
+            return players.max(by: {
+                (voteCounts[$0.id] ?? 0) < (voteCounts[$1.id] ?? 0)
+            })
+            
+        } catch {
+            errorMessage = "Failed to calculate winner: \(error.localizedDescription)"
+            return nil
         }
     }
     
@@ -253,15 +276,8 @@ class GamesessionViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Helpers
-    
-    private func generateUsername() -> String {
-        let adjectives = ["Cool", "Swift", "Happy", "Brave", "Smart", "Clever", "Wise", "Bold"]
-        let nouns = ["Gamer", "Player", "Champion", "Winner", "Hero", "Star", "Master", "Pro"]
-        
-        return "\(adjectives.randomElement()!) \(nouns.randomElement()!)"
-    }
-    
+    // Helpers
+  
     // MARK: - Computed Properties
     
     var currentPlayer: PlayerModel? {

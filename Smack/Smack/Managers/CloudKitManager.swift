@@ -144,6 +144,11 @@ class CloudKitManager: ObservableObject {
     
     // MARK: - Question Operations
     
+    func fetchUnansweredQuestions(forSession sessionID: UUID) async throws -> [sessionQuestionModel] {
+        let predicate = NSPredicate(format: "session_id == %@ AND was_answered == %d", sessionID.uuidString, 0)
+        return try await fetch(recordType: "SessionQuestion", predicate: predicate)
+    }
+    
     func fetchQuestions(forCategory categoryID: UUID) async throws -> [QuestionModel] {
         let predicate = NSPredicate(format: "category_id == %@", categoryID.uuidString)
         return try await fetch(recordType: "Question", predicate: predicate)
@@ -171,6 +176,11 @@ class CloudKitManager: ObservableObject {
     
     func fetchVotes(forsessionQuestion sessionQuestionID: UUID) async throws -> [VoteModel] {
         let predicate = NSPredicate(format: "session_question_id == %@", sessionQuestionID.uuidString)
+        return try await fetch(recordType: "Vote", predicate: predicate)
+    }
+    
+    func fetchVotes(forPlayer playerID: UUID) async throws -> [VoteModel] {
+        let predicate = NSPredicate(format: "voted_for_participant_id == %@", playerID.uuidString)
         return try await fetch(recordType: "Vote", predicate: predicate)
     }
     
@@ -231,10 +241,22 @@ class CloudKitManager: ObservableObject {
     }
     
     func fetchUserPurchases(deviceID: UUID) async throws -> [PurchaseModel] {
-        let predicate = NSPredicate(format: "Device_id == %@", deviceID.uuidString)
+        let predicate = NSPredicate(format: "device_id == %@", deviceID.uuidString)
         return try await fetch(recordType: "Purchase", predicate: predicate)
     }
+    
+    // MARK: - UnlockableItem Operations
+    func fetchUnlockableItems(isPremium: Bool) async throws -> [UnlockableItemModel] {
+        let predicate = NSPredicate(format: "is_premium == %d", isPremium ? 1 : 0)
+        return try await self.fetch(recordType: "UnlockableItem", predicate: predicate)
+    }
+
+    func fetchUnlockableItems(byType type: String) async throws -> [UnlockableItemModel] {
+        let predicate = NSPredicate(format: "type == %@", type)
+        return try await self.fetch(recordType: "UnlockableItem", predicate: predicate)
+    }
 }
+
 
 // MARK: - Protocol for CloudKit Conversion
 
@@ -274,3 +296,4 @@ enum CloudKitError: LocalizedError {
         }
     }
 }
+
