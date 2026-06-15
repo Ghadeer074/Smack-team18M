@@ -5,9 +5,14 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>Tajawal-Black.ttf</string>
-		<string>Tajawal.Bold.ttf</string>
+		<string>Tajawal-Bold.ttf</string>
 		<string>Tajawal-Medium.ttf</string>
 		<string>Lalezar-Regular.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>nearby-interaction</string>
+		<string>fetch</string>
 	</array>
 </dict>
 </plist>
