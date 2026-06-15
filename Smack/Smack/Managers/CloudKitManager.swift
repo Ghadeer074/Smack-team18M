@@ -78,7 +78,7 @@ class CloudKitManager: ObservableObject {
         try await publicDatabase.deleteRecord(withID: recordID)
     }
     
-    // MARK: - session Operations
+    // MARK: - Session Operations
     
     func createsession(joinCode: String, maxPlayers: Int = 8) async throws -> sessionModel {
         let session = sessionModel(
@@ -96,7 +96,6 @@ class CloudKitManager: ObservableObject {
     }
     
     func updatesessionStatus(sessionID: UUID, status: String) async throws {
-        // ── نجيب كل الـ sessions ونفلتر محلياً ──
         let allSessions: [sessionModel] = try await fetch(
             recordType: "session",
             predicate: NSPredicate(value: true)
@@ -106,7 +105,6 @@ class CloudKitManager: ObservableObject {
             throw CloudKitError.recordNotFound
         }
         
-        // ── نجيب الـ record مباشرة بالـ recordID ──
         guard let recordID = session.recordID else {
             throw CloudKitError.recordNotFound
         }
@@ -115,6 +113,25 @@ class CloudKitManager: ObservableObject {
         record["status"] = status as CKRecordValue
         try await publicDatabase.save(record)
     }
+    
+    // ✅ NEW: increment round count
+    func incrementRoundCount(sessionID: UUID) async throws {
+        let allSessions: [sessionModel] = try await fetch(
+            recordType: "session",
+            predicate: NSPredicate(value: true)
+        )
+        
+        guard let session = allSessions.first(where: { $0.id == sessionID }),
+              let recordID = session.recordID else {
+            throw CloudKitError.recordNotFound
+        }
+        
+        let record = try await publicDatabase.record(for: recordID)
+        let current = record["round_count"] as? Int ?? 0
+        record["round_count"] = (current + 1) as CKRecordValue
+        try await publicDatabase.save(record)
+    }
+    
     // MARK: - Player Operations
     
     func addPlayer(
@@ -150,10 +167,31 @@ class CloudKitManager: ObservableObject {
         _ = try await save(player)
     }
     
+    // ✅ NEW: update player role
+    func updatePlayerRole(playerID: UUID, role: String) async throws {
+        let predicate = NSPredicate(format: "id == %@", playerID.uuidString)
+        let players: [PlayerModel] = try await fetch(recordType: "Player", predicate: predicate)
+        
+        guard var player = players.first else {
+            throw CloudKitError.recordNotFound
+        }
+        
+        player.role = role
+        _ = try await save(player)
+    }
+    
+    // ✅ NEW: count answerers in a session
+    func countAnswerers(forSession sessionID: UUID) async throws -> Int {
+        let predicate = NSPredicate(format: "session_id == %@ AND role == %@",
+                                    sessionID.uuidString, "answerer")
+        let players: [PlayerModel] = try await fetch(recordType: "Player", predicate: predicate)
+        return players.count
+    }
+    
     // MARK: - Question Operations
     
     func fetchUnansweredQuestions(forSession sessionID: UUID) async throws -> [sessionQuestionModel] {
-        let predicate = NSPredicate(format: "session_id == %@ AND was_answered == %d", sessionID.uuidString, 0)
+        let predicate = NSPredicate(format: "session_id == %@ AND was_answerd == %d", sessionID.uuidString, 0)
         return try await fetch(recordType: "SessionQuestion", predicate: predicate)
     }
     
@@ -167,9 +205,25 @@ class CloudKitManager: ObservableObject {
         return try await fetch(recordType: "Question", predicate: predicate)
     }
     
+    // ✅ NEW: mark question as answered
+    func markQuestionAnswered(sessionQuestionID: UUID) async throws {
+        let allQuestions: [sessionQuestionModel] = try await fetch(
+            recordType: "SessionQuestion",
+            predicate: NSPredicate(value: true)
+        )
+        
+        guard let question = allQuestions.first(where: { $0.id == sessionQuestionID }),
+              let recordID = question.recordID else {
+            throw CloudKitError.recordNotFound
+        }
+        
+        let record = try await publicDatabase.record(for: recordID)
+        record["was_answerd"] = 1 as CKRecordValue
+        try await publicDatabase.save(record)
+    }
     
     // MARK: - Answer Operations
-
+    
     func submitAnswer(
         sessionQuestionID: UUID,
         playerID: UUID,
@@ -182,15 +236,15 @@ class CloudKitManager: ObservableObject {
         )
         return try await save(answer)
     }
-
+    
     func fetchAnswers(forSessionQuestion sessionQuestionID: UUID) async throws -> [AnswerModel] {
         let predicate = NSPredicate(format: "session_question_id == %@", sessionQuestionID.uuidString)
         return try await fetch(recordType: "Answer", predicate: predicate)
     }
     
-    func fetchVotes(forAnswer answerID: UUID) async throws -> [VoteModel] {
-        let predicate = NSPredicate(format: "answer_id == %@", answerID.uuidString)
-        return try await fetch(recordType: "Vote", predicate: predicate)
+    func fetchAnswers(forPlayer playerID: UUID) async throws -> [AnswerModel] {
+        let predicate = NSPredicate(format: "player_id == %@", playerID.uuidString)
+        return try await fetch(recordType: "Answer", predicate: predicate)
     }
     
     // MARK: - Vote Operations
@@ -203,7 +257,7 @@ class CloudKitManager: ObservableObject {
         let vote = VoteModel(
             sessionQuestionID: sessionQuestionID,
             voterParticipantID: voterID,
-            votedForParticipantID: voterID, //not used anymore but kept to avoid breaking schema
+            votedForParticipantID: voterID,
             answerID: answerID
         )
         return try await save(vote)
@@ -216,6 +270,11 @@ class CloudKitManager: ObservableObject {
     
     func fetchVotes(forPlayer playerID: UUID) async throws -> [VoteModel] {
         let predicate = NSPredicate(format: "voted_for_participant_id == %@", playerID.uuidString)
+        return try await fetch(recordType: "Vote", predicate: predicate)
+    }
+    
+    func fetchVotes(forAnswer answerID: UUID) async throws -> [VoteModel] {
+        let predicate = NSPredicate(format: "answer_id == %@", answerID.uuidString)
         return try await fetch(recordType: "Vote", predicate: predicate)
     }
     
@@ -253,8 +312,8 @@ class CloudKitManager: ObservableObject {
     }
     
     func checkActiveSubscription(deviceID: UUID) async throws -> Bool {
-        let predicate = NSPredicate(format: "device_id == %@ AND expires_at > %@", 
-                                    deviceID.uuidString, 
+        let predicate = NSPredicate(format: "device_id == %@ AND expires_at > %@",
+                                    deviceID.uuidString,
                                     Date() as NSDate)
         let subscriptions: [SubscriptionModel] = try await fetch(recordType: "Subscription", predicate: predicate)
         return !subscriptions.isEmpty
@@ -281,17 +340,17 @@ class CloudKitManager: ObservableObject {
     }
     
     // MARK: - UnlockableItem Operations
+    
     func fetchUnlockableItems(isPremium: Bool) async throws -> [UnlockableItemModel] {
         let predicate = NSPredicate(format: "is_premium == %d", isPremium ? 1 : 0)
         return try await self.fetch(recordType: "UnlockableItem", predicate: predicate)
     }
-
+    
     func fetchUnlockableItems(byType type: String) async throws -> [UnlockableItemModel] {
         let predicate = NSPredicate(format: "type == %@", type)
         return try await self.fetch(recordType: "UnlockableItem", predicate: predicate)
     }
 }
-
 
 // MARK: - Protocol for CloudKit Conversion
 
@@ -331,6 +390,4 @@ enum CloudKitError: LocalizedError {
             return "Not signed in to iCloud"
         }
     }
-    
 }
-

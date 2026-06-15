@@ -44,6 +44,9 @@ class GamesessionViewModel: ObservableObject {
             let newsession = try await cloudKit.createsession(joinCode: code, maxPlayers: maxPlayers)
             session = newsession
             
+            // ✅ save code so we can restore session if app is killed
+            UserDefaults.standard.set(code, forKey: "activeSessionCode")
+            
             let host = try await cloudKit.addPlayer(
                 sessionID: newsession.id,
                 deviceID: deviceManager.deviceID,
@@ -85,6 +88,8 @@ class GamesessionViewModel: ObservableObject {
             try await cloudKit.updatesessionStatus(sessionID: session.id, status: "ended")
             gameState = .ended
             stopPlayerPolling()
+            // ✅ clear saved session code
+            UserDefaults.standard.removeObject(forKey: "activeSessionCode")
         } catch {
             errorMessage = "Failed to end game: \(error.localizedDescription)"
         }
@@ -122,6 +127,9 @@ class GamesessionViewModel: ObservableObject {
                 username: username
             )
             
+            // ✅ save code for session restore
+            UserDefaults.standard.set(code.uppercased(), forKey: "activeSessionCode")
+            
             session = foundsession
             players = existingPlayers + [player]
             gameState = .lobby
@@ -141,6 +149,57 @@ class GamesessionViewModel: ObservableObject {
         votes = []
         gameState = .lobby
         stopPlayerPolling()
+        // ✅ clear saved session code
+        UserDefaults.standard.removeObject(forKey: "activeSessionCode")
+    }
+    
+    // ✅ NEW: restore session on app relaunch
+    func restoreSession() async {
+        guard let savedCode = UserDefaults.standard.string(forKey: "activeSessionCode") else { return }
+        
+        do {
+            guard let foundSession = try await cloudKit.fetchsession(byJoinCode: savedCode) else {
+                UserDefaults.standard.removeObject(forKey: "activeSessionCode")
+                return
+            }
+            
+            guard foundSession.status != "ended" else {
+                UserDefaults.standard.removeObject(forKey: "activeSessionCode")
+                return
+            }
+            
+            session = foundSession
+            players = try await cloudKit.fetchPlayers(forsession: foundSession.id)
+            sessionQuestions = try await cloudKit.fetchUnansweredQuestions(forSession: foundSession.id)
+            gameState = foundSession.status == "waiting" ? .lobby : .answering
+            startPlayerPolling()
+            
+        } catch {
+            errorMessage = "Failed to restore session: \(error.localizedDescription)"
+        }
+    }
+    
+    // MARK: - Role Selection
+    
+    // ✅ NEW: select role with locking logic
+    func selectRole(_ role: String) async {
+        guard let session = session,
+              let currentPlayer = currentPlayer else { return }
+        
+        do {
+            if role == "answerer" {
+                let answererCount = try await cloudKit.countAnswerers(forSession: session.id)
+                if answererCount >= 2 {
+                    errorMessage = "Answerer slots are full, you will be a voter"
+                    try await cloudKit.updatePlayerRole(playerID: currentPlayer.id, role: "voter")
+                    return
+                }
+            }
+            try await cloudKit.updatePlayerRole(playerID: currentPlayer.id, role: role)
+            await refreshPlayers()
+        } catch {
+            errorMessage = "Failed to select role: \(error.localizedDescription)"
+        }
     }
     
     // MARK: - Game Logic
@@ -186,9 +245,35 @@ class GamesessionViewModel: ObservableObject {
             let predicate = NSPredicate(format: "id == %@", sessionQuestion.questionID.uuidString)
             let questions: [QuestionModel] = try await cloudKit.fetch(recordType: "Question", predicate: predicate)
             currentQuestion = questions.first
-            answers = [] // reset answers for new question
+            answers = []
         } catch {
             errorMessage = "Failed to load question: \(error.localizedDescription)"
+        }
+    }
+    
+    // ✅ NEW: end round, mark question answered, increment round count
+    func endRound() async {
+        guard let session = session,
+              let currentSessionQuestion = sessionQuestions.first(where: {
+                  $0.roundNumber == session.roundCount + 1
+              }) else { return }
+        
+        do {
+            try await cloudKit.markQuestionAnswered(sessionQuestionID: currentSessionQuestion.id)
+            try await cloudKit.incrementRoundCount(sessionID: session.id)
+            self.session?.roundCount += 1
+            answers = []
+            votes = []
+            
+            // check if game is over based on session's maxAnswerers
+            if let updatedSession = self.session,
+               updatedSession.roundCount >= (updatedSession.maxAnswerers ?? 4) {
+                await endGame()
+            } else {
+                await loadQuestions()
+            }
+        } catch {
+            errorMessage = "Failed to end round: \(error.localizedDescription)"
         }
     }
     
@@ -256,9 +341,8 @@ class GamesessionViewModel: ObservableObject {
         
         do {
             for answer in answers {
-                let answerVotes = try await cloudKit.fetchVotes(forsessionQuestion: answer.sessionQuestionID)
-                let votesForThisAnswer = answerVotes.filter { $0.answerID == answer.id }
-                voteCounts[answer.playerID, default: 0] += votesForThisAnswer.count
+                let answerVotes = try await cloudKit.fetchVotes(forAnswer: answer.id)
+                voteCounts[answer.playerID, default: 0] += answerVotes.count
             }
             
             return players.max(by: {
