@@ -11,6 +11,7 @@ struct EnterCodeScreen: View {
     @Environment(NavigationManager.self) private var nav
     @State private var code = ""
     @State private var shake = false
+    @State private var vm = EnterCodeViewModel()
 
     var body: some View {
         ZStack {
@@ -52,18 +53,38 @@ struct EnterCodeScreen: View {
                         .foregroundStyle(.white)
                         .opacity(0.6)
 
-                    
+                    // ======== error message ========
+                    if let error = vm.errorMessage {
+                        Text(error)
+                            .font(.custom("Tajawal-Bold", size: geo.size.width * 0.045))
+                            .foregroundStyle(Color(.red))
+                            .padding(.horizontal)
+                            .multilineTextAlignment(.center)
+                    }
+
                     // ======== انضم button ========
                     Button {
-                        nav.push(.playerOrVoter)
+                        Task {
+                            await vm.joinSession(code: code)
+                        }
                     } label: {
                         ZStack {
-                            ButtonView(width: geo.size.width * 0.36, height: geo.size.height * 0.08, fillColor: Color(.red))
-                            Text("انضم")
-                                .font(.custom("Lalezar-Regular", size: geo.size.width * 0.08))
-                                .foregroundStyle(.white)
+                            ButtonView(
+                                width: geo.size.width * 0.36,
+                                height: geo.size.height * 0.08,
+                                fillColor: Color(.red)
+                            )
+                            if vm.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text("انضم")
+                                    .font(.custom("Lalezar-Regular", size: geo.size.width * 0.08))
+                                    .foregroundStyle(.white)
+                            }
                         }
                     }
+                    .disabled(vm.isLoading)
 
                     Spacer().frame(height: geo.size.height * 0)
 
@@ -74,6 +95,14 @@ struct EnterCodeScreen: View {
             }
         }
         .navigationBarHidden(true)
+        // ======== لما يلقى الـ session ينتقل ========
+        .onChange(of: vm.joinedSession?.id) { _, newID in
+            if newID != nil {
+                nav.currentSession = vm.joinedSession
+                nav.isHost = false
+                nav.push(.playerOrVoter)
+            }
+        }
     }
 }
 

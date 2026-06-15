@@ -96,17 +96,25 @@ class CloudKitManager: ObservableObject {
     }
     
     func updatesessionStatus(sessionID: UUID, status: String) async throws {
-        let predicate = NSPredicate(format: "id == %@", sessionID.uuidString)
-        let sessions: [sessionModel] = try await fetch(recordType: "session", predicate: predicate)
+        // ── نجيب كل الـ sessions ونفلتر محلياً ──
+        let allSessions: [sessionModel] = try await fetch(
+            recordType: "session",
+            predicate: NSPredicate(value: true)
+        )
         
-        guard var session = sessions.first else {
+        guard let session = allSessions.first(where: { $0.id == sessionID }) else {
             throw CloudKitError.recordNotFound
         }
         
-        session.status = status
-        _ = try await save(session)
+        // ── نجيب الـ record مباشرة بالـ recordID ──
+        guard let recordID = session.recordID else {
+            throw CloudKitError.recordNotFound
+        }
+        
+        let record = try await publicDatabase.record(for: recordID)
+        record["status"] = status as CKRecordValue
+        try await publicDatabase.save(record)
     }
-    
     // MARK: - Player Operations
     
     func addPlayer(
@@ -155,7 +163,7 @@ class CloudKitManager: ObservableObject {
     }
     
     func fetchFreeQuestions() async throws -> [QuestionModel] {
-        let predicate = NSPredicate(format: "is_free == %d", 1)
+        let predicate = NSPredicate(format: "is_free == %@", NSNumber(value: 1))
         return try await fetch(recordType: "Question", predicate: predicate)
     }
     

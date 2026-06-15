@@ -12,35 +12,26 @@ enum CustomizationCategory: String, CaseIterable {
     var icon: String {
         switch self {
         case .headwear: return "Icon_Headwear"
-        case .eyes: return "Icon_Eyes"
-        case .mouth: return "Icon_Mouth"
-        case .color: return "Icon_Color"
+        case .eyes:     return "Icon_Eyes"
+        case .mouth:    return "Icon_Mouth"
+        case .color:    return "Icon_Color"
         }
     }
 }
 
-
 struct CharacterCustomizationScreen: View {
     
     @Environment(NavigationManager.self) private var nav
-    
+    @State private var vm = CharacterCustomizationViewModel()
+
     @State private var playerName: String = ""
     @State private var selectedCategory: CustomizationCategory = .headwear
-    
-    // index of selected option for each category
     @State private var selections: [CustomizationCategory: Int] = [
-        .headwear: 0,
-        .eyes: 0,
-        .mouth: 0,
-        .color: 0
+        .headwear: 0, .eyes: 0, .mouth: 0, .color: 0
     ]
     
-    // number of options available per category
     let optionCounts: [CustomizationCategory: Int] = [
-        .headwear: 5,
-        .eyes: 4,
-        .mouth: 4,
-        .color: 5
+        .headwear: 5, .eyes: 4, .mouth: 4, .color: 5
     ]
     
     var body: some View {
@@ -70,7 +61,6 @@ struct CharacterCustomizationScreen: View {
                             borderColor: .black,
                             shadowWidth: 5
                         )
-                        
                         HStack(spacing: geo.size.width * 0.04) {
                             ForEach(CustomizationCategory.allCases, id: \.self) { category in
                                 Button {
@@ -78,7 +68,7 @@ struct CharacterCustomizationScreen: View {
                                 } label: {
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(.systemGray6))
+                                            .fill(Color.white)
                                             .frame(width: geo.size.width * 0.16, height: geo.size.width * 0.16)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 12)
@@ -87,7 +77,6 @@ struct CharacterCustomizationScreen: View {
                                                         lineWidth: selectedCategory == category ? 4 : 3
                                                     )
                                             )
-                                        
                                         Image(category.icon)
                                             .resizable()
                                             .scaledToFill()
@@ -98,81 +87,46 @@ struct CharacterCustomizationScreen: View {
                         }
                     }.padding(.bottom, geo.size.width * 0.1)
                     
-                    
                     // ======= character preview =======
                     ZStack {
-                        
-                        // base body — color changes based on selection
                         Image("CharacterBase_\(selections[.color] ?? 0)")
-                            .resizable()
-                            .scaledToFit()
+                            .resizable().scaledToFit()
                             .frame(width: geo.size.width * 0.55)
-                        
-                        // eyes layer
                         Image("Eyes_\(selections[.eyes] ?? 0)")
-                            .resizable()
-                            .scaledToFit()
+                            .resizable().scaledToFit()
                             .frame(width: geo.size.width * 0.55)
-                        
-                        // mouth layer
                         Image("Mouth_\(selections[.mouth] ?? 0)")
-                            .resizable()
-                            .scaledToFit()
+                            .resizable().scaledToFit()
                             .frame(width: geo.size.width * 0.55)
-                        
-                        // headwear layer
                         Image("Headwear_\(selections[.headwear] ?? 0)")
-                            .resizable()
-                            .scaledToFit()
+                            .resizable().scaledToFit()
                             .frame(width: geo.size.width * 0.55)
                         
                         HStack {
-                            
-                            Button {
-                                changeOption(by: -1)
-                            } label: {
+                            Button { changeOption(by: -1) } label: {
                                 ZStack {
-                                    ButtonView(
-                                        width: geo.size.width * 0.16,
-                                        height: geo.size.width * 0.16,
-                                        fillColor: Color(.red),
-                                        borderColor: Color(.black),
-                                        shadowWidth: 4
-                                    )
+                                    ButtonView(width: geo.size.width * 0.16, height: geo.size.width * 0.16, fillColor: Color(.red), borderColor: Color(.black), shadowWidth: 4)
                                     Image(systemName: "play.fill")
                                         .foregroundStyle(.white)
                                         .font(.system(size: geo.size.width * 0.05))
                                         .rotationEffect(.degrees(180))
                                 }
                             }
-                            
                             Spacer()
-                            
-                            Button {
-                                changeOption(by: 1)
-                            } label: {
+                            Button { changeOption(by: 1) } label: {
                                 ZStack {
-                                    ButtonView(
-                                        width: geo.size.width * 0.16,
-                                        height: geo.size.width * 0.16,
-                                        fillColor: Color(.red),
-                                        borderColor: Color(.black),
-                                        shadowWidth: 4
-                                    )
+                                    ButtonView(width: geo.size.width * 0.16, height: geo.size.width * 0.16, fillColor: Color(.red), borderColor: Color(.black), shadowWidth: 4)
                                     Image(systemName: "play.fill")
                                         .foregroundStyle(.white)
                                         .font(.system(size: geo.size.width * 0.05))
                                 }
                             }
-                            
                         }
                         .frame(width: geo.size.width * 0.85)
-                        
                     }
                     .frame(height: geo.size.height * 0.25)
 
-
-                    // ======= player name label =======
+                    // ======= player name =======
                     TextTitle(
                         text: "اسم اللاعب:",
                         fontName: "Lalezar-Regular",
@@ -182,46 +136,74 @@ struct CharacterCustomizationScreen: View {
                     )
                     .padding(.top, -geo.size.height * 0.02)
                     
-                    // ======= name text field =======
                     ZStack {
-                        ButtonView(
-                            width: geo.size.width * 0.7,
-                            height: geo.size.height * 0.09,
-                            fillColor: .white,
-                            borderColor: .black,
-                            shadowWidth: 5
-                        )
-                        
+                        ButtonView(width: geo.size.width * 0.7, height: geo.size.height * 0.09, fillColor: .white, borderColor: .black, shadowWidth: 5)
                         TextField(". . .", text: $playerName)
                             .font(.custom("Tajawal-Bold", size: geo.size.width * 0.08))
+                            .foregroundStyle(Color.black)
                             .multilineTextAlignment(.center)
                             .frame(width: geo.size.width * 0.75)
+                    }
+
+                    // ======= error =======
+                    if let error = vm.errorMessage {
+                        Text(error)
+                            .font(.custom("Tajawal-Bold", size: geo.size.width * 0.04))
+                            .foregroundStyle(Color(.red))
                     }
                     
                     Spacer()
                     
                     // ======= next button =======
                     Button {
-                        nav.push(.waitingGameRoom)
-                        
-                        
+                        Task {
+                            if let session = nav.currentSession {
+                                await vm.joinAsPlayer(
+                                    name: playerName,
+                                    session: session,
+                                    role: nav.selectedRole,
+                                    isHost: nav.isHost
+                                )
+                            }
+                        }
                     } label: {
                         ZStack {
-                            ButtonView(width: geo.size.width * 0.45, height: geo.size.height * 0.085, fillColor: Color(.red))
-                            
-                            Text("التالي").font(.custom("Lalezar-Regular", size: geo.size.width * 0.085)).foregroundStyle(.white)
+                            ButtonView(
+                                width: geo.size.width * 0.45,
+                                height: geo.size.height * 0.085,
+                                fillColor: vm.isLoading ? Color(.gray) : Color(.red)
+                            )
+                            if vm.isLoading {
+                                ProgressView().tint(.white)
+                            } else {
+                                Text("التالي")
+                                    .font(.custom("Lalezar-Regular", size: geo.size.width * 0.085))
+                                    .foregroundStyle(.white)
+                            }
                         }
                     }
+                    .disabled(vm.isLoading)
                     .padding(.bottom, geo.size.height * 0.1)
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
                 
                 BackButton(geo: geo)
             }
-        }.navigationBarHidden(true)
+        }
+        .navigationBarHidden(true)
+        .onChange(of: vm.playerCreated) { _, created in
+            if created {
+                nav.currentPlayer = vm.createdPlayer
+                // ── الهوست يروح غرفة الانتظار، اللاعب يروح غرفة انتظار اللاعبين ──
+                if nav.isHost {
+                    nav.push(.waitingGameRoom)
+                } else {
+                    nav.push(.waitingGameRoom)
+                }
+            }
+        }
     }
     
-    // ======= cycle through options for the selected category =======
     private func changeOption(by step: Int) {
         let count = optionCounts[selectedCategory] ?? 1
         var current = selections[selectedCategory] ?? 0

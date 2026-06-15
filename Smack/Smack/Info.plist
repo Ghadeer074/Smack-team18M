@@ -9,5 +9,10 @@
 		<string>Tajawal-Medium.ttf</string>
 		<string>Lalezar-Regular.ttf</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>nearby-interaction</string>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>

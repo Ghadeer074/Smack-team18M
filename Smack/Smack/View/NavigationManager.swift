@@ -2,47 +2,31 @@
 //  NavigationManager.swift
 //  Smack
 //
-//  Created by Nouf Alshawoosh on 12/06/2026.
-//
 
 import SwiftUI
 
 enum AppRoute: Hashable {
-    // ==== onboarding ====
-    case joinOrHost
-    case enterCode
-    case gameSettings
-
-    // ==== character ====
+    case joinOrHost, enterCode, gameSettings
     case characterCustomization
-
-    // ==== host flow ====
     case waitingGameRoom
-
-    // ==== player flow ====
-    case playerOrVoter
-    case playerWaiting
-    case votersWaiting
-
-    // ==== game ====
-    case question
-    case votingScreen
-    case roundWinner
-    case drawScreen
-    case gameWinner
-
-    // ==== misc ====
-    case settings
-    case subscription
+    case playerOrVoter, playerWaiting, votersWaiting
+    case question, votingScreen, roundWinner, drawScreen, gameWinner
+    case settings, subscription
 }
 
 @Observable
 class NavigationManager {
     var path = NavigationPath()
 
-    func push(_ route: AppRoute) {
-        path.append(route)
-    }
+    var currentSession: sessionModel?
+    var currentPlayer: PlayerModel?
+    var isHost: Bool = false
+    var selectedRole: String = "player"
+    var currentSessionQuestion: sessionQuestionModel?
+    var currentQuestionText: String = ""
+    var totalRounds: Int = 1  // ── يتحفظ من GameSettingsScreen ──
+
+    func push(_ route: AppRoute) { path.append(route) }
 
     func pop() {
         guard !path.isEmpty else { return }
@@ -51,5 +35,13 @@ class NavigationManager {
 
     func popToRoot() {
         path = NavigationPath()
+        currentSession = nil
+        currentPlayer = nil
+        isHost = false
+        selectedRole = "player"
+        currentSessionQuestion = nil
+        currentQuestionText = ""
+        totalRounds = 1
+        GameTimerManager.shared.stop()
     }
 }

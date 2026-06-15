@@ -2,66 +2,55 @@
 //  QuestionScreen.swift
 //  Smack
 //
-//  Created by Nouf Alshawoosh on 08/06/2026.
-//
 import SwiftUI
-internal import Combine
 
 struct QuestionScreen: View {
-    @State private var timeRemaining = 30
-    @State private var answer = ""
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
-    @State private var move = false
 
-    
+    @Environment(NavigationManager.self) private var nav
+    @State private var answer = ""
+    @State private var submitted = false
+    @State private var isLoading = false
+    @State private var move = false
+    @State private var timeRemaining = 30
+    @State private var timerTask: Task<Void, Never>? = nil
+
     var body: some View {
-        
         ZStack {
             Color(.blue).ignoresSafeArea()
-            
+
             GeometryReader { geo in
-                
-                // ======= character =======
+
                 Image("TinyCharacter")
-                    .resizable()
-                    .scaledToFit()
+                    .resizable().scaledToFit()
                     .frame(width: geo.size.width * 0.7)
                     .position(x: geo.size.width * 0.3, y: geo.size.height * 0.17)
                     .offset(y: move ? -5 : 0)
                     .animation(.easeInOut(duration: 1.3).repeatForever(autoreverses: true), value: move)
                     .onAppear { move.toggle() }
-                
-                // ======= timer =======
+
                 TextTitle(
                     text: String(format: "00:%02d", timeRemaining),
                     fontName: "Lalezar-Regular",
                     size: geo.size.width * 0.12,
                     strokeWidth: 1,
-                    color: .yellow
+                    color: timeRemaining <= 10 ? .red : .yellow
                 )
                 .position(x: geo.size.width * 0.5, y: geo.size.height * 0.07)
-                
-                // =======================
-                
+
                 VStack(spacing: geo.size.height * 0.04) {
-                    
                     Spacer().frame(height: geo.size.height * 0.12)
-                    
-                    // ======= question card =======
+
                     ZStack {
                         ButtonView(width: geo.size.width * 0.85, height: geo.size.height * 0.22, borderColor: Color(.red))
-                        Text("ماهو الشي الذي لا يكتمل العيد بدونه؟")
+                        Text(nav.currentQuestionText.isEmpty ? "جاري تحميل السؤال..." : nav.currentQuestionText)
                             .font(.custom("Tajawal-Black", size: geo.size.width * 0.06))
                             .foregroundStyle(.black)
                             .multilineTextAlignment(.center)
                             .lineSpacing(10)
-                            .frame(width: geo.size.width * 0.75, height: geo.size.height * 0.17)
+                            .frame(width: geo.size.width * 0.75)
                             .padding()
                     }
-                    
-                    
-                    // ======= answer text field =======
+
                     ZStack {
                         ButtonView(width: geo.size.width * 0.75, height: geo.size.height * 0.2)
                         ZStack(alignment: .topTrailing) {
@@ -69,48 +58,106 @@ struct QuestionScreen: View {
                                 Text("اكتب ردك هنا...")
                                     .font(.custom("Tajawal-Bold", size: geo.size.width * 0.05))
                                     .foregroundStyle(.gray)
-                                    .padding(.top, 8)
-                                    .padding(.trailing, 8)
+                                    .padding(.top, 8).padding(.trailing, 8)
                             }
                             TextEditor(text: $answer)
                                 .font(.custom("Tajawal-Bold", size: geo.size.width * 0.06))
+                                .foregroundStyle(.black)
                                 .frame(width: geo.size.width * 0.65, height: geo.size.height * 0.15)
                                 .scrollContentBackground(.hidden)
                                 .multilineTextAlignment(.trailing)
                         }
                         .frame(width: geo.size.width * 0.65, height: geo.size.height * 0.15)
                     }
-                    
-                    Spacer().frame(height: geo.size.height * 0.12)
-                    
-                    // ======= submit button =======
+
                     Button {
-                        
+                        Task { await submitAnswer() }
                     } label: {
                         ZStack {
-                            ButtonView(width: geo.size.width * 0.45, height: geo.size.height * 0.103, fillColor: Color(.red))
-                            Text("اشطح !")
-                                .font(.custom("Lalezar-Regular", size: geo.size.width * 0.09))
-                                .foregroundStyle(.white)
+                            ButtonView(
+                                width: geo.size.width * 0.45,
+                                height: geo.size.height * 0.1,
+                                fillColor: submitted ? Color(.gray) : Color(.red)
+                            )
+                            if isLoading {
+                                ProgressView().tint(.white)
+                            } else {
+                                Text(submitted ? "تم ✓" : "اشطح !")
+                                    .font(.custom("Lalezar-Regular", size: geo.size.width * 0.09))
+                                    .foregroundStyle(.white)
+                            }
                         }
                     }
-                    
+                    .disabled(submitted || isLoading)
+
                 }.frame(width: geo.size.width, height: geo.size.height)
             }
         }
-        .onReceive(timer) { _ in
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-            } else {
-                // When the 30 seconds are done, we're gonna add what to do (mostly make the answer = "معرفش" or "..." and move to next screen (voting)
-                
-                timer.upstream.connect().cancel()
+        .navigationBarHidden(true)
+        .onAppear {
+            Task {
+                await loadQuestion()
+                startTimer()
             }
         }
-        
+        .onDisappear { timerTask?.cancel() }
+        .onChange(of: timeRemaining) { _, t in
+            if t <= 0 && !submitted {
+                Task {
+                    if answer.isEmpty { answer = "معرفش" }
+                    await submitAnswer()
+                    nav.push(.votingScreen)
+                }
+            } else if t <= 0 {
+                nav.push(.votingScreen)
+            }
+        }
+    }
+
+    private func startTimer() {
+        timerTask?.cancel()
+        // ── تزامن مع createdAt السؤال ──
+        let createdAt = nav.currentSessionQuestion?.createdAt ?? Date()
+        let elapsed = max(0, Int(Date().timeIntervalSince(createdAt)))
+        timeRemaining = max(30 - elapsed, 1)
+
+        timerTask = Task {
+            while timeRemaining > 0 && !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                timeRemaining -= 1
+            }
+        }
+    }
+
+    private func loadQuestion() async {
+        guard let question = nav.currentSessionQuestion else { return }
+        guard nav.currentQuestionText.isEmpty else { return }
+        do {
+            let all: [QuestionModel] = try await CloudKitManager.shared.fetch(
+                recordType: "Question", predicate: NSPredicate(value: true)
+            )
+            if let found = all.first(where: { $0.id == question.questionID }) {
+                nav.currentQuestionText = found.prompt
+            }
+        } catch {}
+    }
+
+    private func submitAnswer() async {
+        guard !submitted,
+              let question = nav.currentSessionQuestion,
+              let playerID = nav.currentPlayer?.id else { return }
+        isLoading = true
+        let finalAnswer = answer.trimmingCharacters(in: .whitespaces).isEmpty ? "معرفش" : answer
+        do {
+            _ = try await CloudKitManager.shared.submitAnswer(
+                sessionQuestionID: question.id,
+                playerID: playerID,
+                content: finalAnswer
+            )
+            submitted = true
+        } catch {}
+        isLoading = false
     }
 }
 
-#Preview {
-    QuestionScreen()
-}
+#Preview { QuestionScreen() }

@@ -68,7 +68,7 @@ struct SettingsScreen: View {
                     
                     // ======= support button =======
                     Button {
-                        if let url = URL(string: "https://forms.google.com") {
+                        if let url = URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSeFSpcfDE15C9FU70glkqA3tEt8kOhHlg6JHv7QWSCBtaUzIg/viewform?pli=1") {
                             UIApplication.shared.open(url)
                         }
                         

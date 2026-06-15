@@ -19,6 +19,11 @@ struct SplashScreen: View {
     @State private var starsVisible = false
     @State private var buttonVisible = false
 
+    // ── هل شاف الـ splash من قبل؟ ──
+    private var hasSeenSplash: Bool {
+        UserDefaults.standard.bool(forKey: "hasSeenSplash")
+    }
+
     var body: some View {
         ZStack {
             Color(.blue).ignoresSafeArea()
@@ -147,15 +152,26 @@ struct SplashScreen: View {
         }
         .navigationBarHidden(true)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3)  { bubble1Visible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3)  { bubble1Visible = false }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5)  { characterVisible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.7)  { bubble2Visible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.9)  { bubble2Visible = false }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0)  { characterTilted = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5)  { titleVisible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0)  { starsVisible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.5)  { buttonVisible = true }
+            if hasSeenSplash {
+                // ── سبق شافه — اطلع الشاشة فوراً بدون animation ──
+                characterVisible = true
+                characterTilted = true
+                titleVisible = true
+                starsVisible = true
+                buttonVisible = true
+            } else {
+                // ── أول مرة — اشغل الـ animation كاملة ──
+                UserDefaults.standard.set(true, forKey: "hasSeenSplash")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3)  { bubble1Visible = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.3)  { bubble1Visible = false }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5)  { characterVisible = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.7)  { bubble2Visible = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.9)  { bubble2Visible = false }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0)  { characterTilted = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.5)  { titleVisible = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0)  { starsVisible = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.5)  { buttonVisible = true }
+            }
         }
     }
 }

@@ -29,8 +29,8 @@ struct JoinOrHostScreen: View {
                     .onAppear { move.toggle() }
 
                 VStack {
-                    
-                    // join a game
+
+                    // ── انضم إلى غرفة ──
                     Button {
                         nav.push(.enterCode)
                     } label: {
@@ -47,14 +47,15 @@ struct JoinOrHostScreen: View {
 
                     Spacer().frame(height: geo.size.height * 0.04)
 
-                    // host a game
+                    // ── ابدأ غرفة جديدة ← يروح على gameSettings أول ──
                     Button {
-                        nav.push(.playerOrVoter)
+                        nav.isHost = true
+                        nav.push(.gameSettings)
                     } label: {
                         ZStack {
                             ButtonView(width: geo.size.width * 0.8, height: geo.size.height * 0.27)
                             VStack(spacing: 1) {
-                                Image("HostAGame")
+                                Image("HostAGAME")
                                 Text("ابدأ  غرفة جديدة")
                                     .font(.custom("Lalezar-Regular", size: geo.size.width * 0.09))
                                     .foregroundStyle(Color(.red))
@@ -64,7 +65,6 @@ struct JoinOrHostScreen: View {
 
                 }.frame(width: geo.size.width, height: geo.size.height)
 
-                // back button
                 BackButton(geo: geo)
             }
         }
