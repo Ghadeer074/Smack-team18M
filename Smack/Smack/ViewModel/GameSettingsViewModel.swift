@@ -13,6 +13,7 @@ class GameSettingsViewModel {
     var isLoading = false
     var errorMessage: String?
     var createdSession: sessionModel?
+    var savedRoundCount: Int = 1  // ── exposed so Screen can read it ──
 
     func createSession(maxPlayers: Int, roundCount: Int) async {
         guard maxPlayers >= 2 else { errorMessage = "اختر عدد لاعبين (2 على الأقل)"; return }
@@ -20,11 +21,14 @@ class GameSettingsViewModel {
 
         isLoading = true
         errorMessage = nil
+        savedRoundCount = roundCount
+
+        // Save to multiple places so nothing gets lost
+        UserDefaults.standard.set(roundCount, forKey: "smack.totalRounds")
+        UserDefaults.standard.synchronize()
 
         do {
             let code = String(format: "%04d", Int.random(in: 1000...9999))
-
-            // ── نبني الـ record مباشرة بكل الحقول دفعة وحدة ──
             let container = CKContainer(identifier: "iCloud.com.Smack")
             let record = CKRecord(recordType: "session")
             record["id"] = UUID().uuidString as CKRecordValue
@@ -36,7 +40,8 @@ class GameSettingsViewModel {
 
             let saved = try await container.publicCloudDatabase.save(record)
 
-            if let session = sessionModel(from: saved) {
+            if var session = sessionModel(from: saved) {
+                session.roundCount = roundCount  // force it regardless of what was read
                 createdSession = session
             }
 

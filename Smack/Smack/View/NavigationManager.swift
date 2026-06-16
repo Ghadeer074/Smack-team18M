@@ -24,7 +24,12 @@ class NavigationManager {
     var selectedRole: String = "player"
     var currentSessionQuestion: sessionQuestionModel?
     var currentQuestionText: String = ""
-    var totalRounds: Int = 1  // ── يتحفظ من GameSettingsScreen ──
+
+    // ── يتحفظ في UserDefaults عشان ما يضيع ──
+    var totalRounds: Int {
+        get { max(UserDefaults.standard.integer(forKey: "smack.totalRounds"), 1) }
+        set { UserDefaults.standard.set(newValue, forKey: "smack.totalRounds") }
+    }
 
     func push(_ route: AppRoute) { path.append(route) }
 
@@ -41,7 +46,5 @@ class NavigationManager {
         selectedRole = "player"
         currentSessionQuestion = nil
         currentQuestionText = ""
-        totalRounds = 1
-        GameTimerManager.shared.stop()
     }
 }

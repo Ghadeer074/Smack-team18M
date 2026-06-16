@@ -27,7 +27,7 @@ class WaitingGameRoomViewModel {
             while !Task.isCancelled {
                 await fetchPlayers(sessionID: session.id)
                 await checkSessionStarted(sessionID: session.id)
-                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
             }
         }
     }
@@ -58,17 +58,22 @@ class WaitingGameRoomViewModel {
                 )
                 firstQuestion = questions.first
                 cachedTotalRounds = session.roundCount
+                UserDefaults.standard.set(session.roundCount, forKey: "smack.totalRounds")
                 gameStarted = true
                 pollingTask?.cancel()
             }
         } catch {}
     }
 
-    func startGame(session: sessionModel) async {
+    func startGame(session: sessionModel, totalRounds: Int) async {
         isLoading = true
         errorMessage = nil
+
+        // Read from UserDefaults — most reliable source
+        let rounds = UserDefaults.standard.integer(forKey: "smack.totalRounds")
+        let finalRounds = rounds > 0 ? rounds : totalRounds
+
         do {
-            // ── جيب كل الأسئلة بدون فلتر ──
             let allQuestions: [QuestionModel] = try await CloudKitManager.shared.fetch(
                 recordType: "Question",
                 predicate: NSPredicate(value: true)
@@ -80,7 +85,6 @@ class WaitingGameRoomViewModel {
                 return
             }
 
-            // ── أنشئ SessionQuestion ──
             let container = CKContainer(identifier: "iCloud.com.Smack")
             let record = CKRecord(recordType: "SessionQuestion")
             record["id"] = UUID().uuidString as CKRecordValue
@@ -88,12 +92,12 @@ class WaitingGameRoomViewModel {
             record["question_id"] = randomQuestion.id.uuidString as CKRecordValue
             record["round_number"] = 1 as CKRecordValue
             record["was_answerd"] = 0 as CKRecordValue
-            record["total_rounds"] = session.roundCount as CKRecordValue
+            record["total_rounds"] = finalRounds as CKRecordValue
 
             let savedRecord = try await container.publicCloudDatabase.save(record)
             firstQuestion = sessionQuestionModel(from: savedRecord)
+            cachedTotalRounds = finalRounds
 
-            // ── غيّر status الـ session ──
             try await CloudKitManager.shared.updatesessionStatus(
                 sessionID: session.id,
                 status: "playing"

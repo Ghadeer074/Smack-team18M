@@ -259,7 +259,8 @@ struct GameSettingsScreen: View {
             if newID != nil {
                 nav.currentSession = vm.createdSession
                 nav.isHost = true
-                nav.totalRounds = roundCount  // ── نحفظ عدد الجولات ──
+                nav.totalRounds = vm.savedRoundCount
+                UserDefaults.standard.set(vm.savedRoundCount, forKey: "smack.totalRounds")
                 nav.push(.characterCustomization)
             }
         }

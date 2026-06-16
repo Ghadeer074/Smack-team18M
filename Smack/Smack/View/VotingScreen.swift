@@ -9,12 +9,14 @@ struct VotingScreen: View {
     @Environment(NavigationManager.self) private var nav
     @State private var answers: [AnswerModel] = []
     @State private var voteSubmitted = false
+    @State private var selectedAnswerID: UUID? = nil
     @State private var isLoading = false
     @State private var move = false
     @State private var bounce1 = false
     @State private var bounce2 = false
     @State private var timeRemaining = 15
     @State private var timerTask: Task<Void, Never>? = nil
+    @State private var pollingTask: Task<Void, Never>? = nil
 
     var isVoter: Bool { nav.selectedRole == "voter" && !nav.isHost }
 
@@ -69,7 +71,9 @@ struct VotingScreen: View {
                                 ButtonView(
                                     width: geo.size.width * 0.8,
                                     height: geo.size.height * 0.2,
-                                    fillColor: (voteSubmitted && isVoter) ? Color(.systemGray4) : .white
+                                    fillColor: selectedAnswerID == answers[0].id ? Color(.yellow) : .white,
+                                    borderColor: selectedAnswerID == answers[0].id ? Color(.red) : .black,
+                                    shadowWidth: selectedAnswerID == answers[0].id ? 6 : 10
                                 )
                                 Text(answers[0].content)
                                     .font(.custom("Tajawal-Black", size: geo.size.width * 0.06))
@@ -95,7 +99,9 @@ struct VotingScreen: View {
                                     ButtonView(
                                         width: geo.size.width * 0.8,
                                         height: geo.size.height * 0.2,
-                                        fillColor: (voteSubmitted && isVoter) ? Color(.systemGray4) : .white
+                                        fillColor: selectedAnswerID == answers[1].id ? Color(.yellow) : .white,
+                                        borderColor: selectedAnswerID == answers[1].id ? Color(.red) : .black,
+                                        shadowWidth: selectedAnswerID == answers[1].id ? 6 : 10
                                     )
                                     Text(answers[1].content)
                                         .font(.custom("Tajawal-Black", size: geo.size.width * 0.06))
@@ -122,11 +128,40 @@ struct VotingScreen: View {
             Task {
                 await loadAnswers()
                 startTimer()
+                startPolling()
             }
         }
-        .onDisappear { timerTask?.cancel() }
+        .onDisappear {
+            timerTask?.cancel()
+            pollingTask?.cancel()
+        }
         .onChange(of: timeRemaining) { _, t in
             if t <= 0 { nav.push(.roundWinner) }
+        }
+    }
+
+    private func startPolling() {
+        guard let question = nav.currentSessionQuestion,
+              let session = nav.currentSession else { return }
+
+        pollingTask?.cancel()
+        pollingTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                do {
+                    let votes = try await CloudKitManager.shared.fetchVotes(forsessionQuestion: question.id)
+                    let players = try await CloudKitManager.shared.fetchPlayers(forsession: session.id)
+                    // ── عدد المصوتين = كل اللاعبين غير الـ players ──
+                    let voterCount = players.filter { $0.role == "voter" }.count
+                    let totalVoters = voterCount > 0 ? voterCount : players.count
+                    if votes.count >= totalVoters && totalVoters > 0 {
+                        pollingTask?.cancel()
+                        timerTask?.cancel()
+                        nav.push(.roundWinner)
+                        return
+                    }
+                } catch {}
+            }
         }
     }
 
@@ -159,6 +194,7 @@ struct VotingScreen: View {
 
     private func submitVote(answerID: UUID) async {
         guard !voteSubmitted, let question = nav.currentSessionQuestion else { return }
+        selectedAnswerID = answerID
         do {
             let voterID = DeviceManager.shared.deviceID
             _ = try await CloudKitManager.shared.submitVote(
@@ -167,7 +203,9 @@ struct VotingScreen: View {
                 answerID: answerID
             )
             voteSubmitted = true
-        } catch {}
+        } catch {
+            selectedAnswerID = nil
+        }
     }
 }
 

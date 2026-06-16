@@ -5,6 +5,7 @@
 //  Created by Nouf Alshawoosh on 11/06/2026.
 //
 import SwiftUI
+import CloudKit
 
 enum CustomizationCategory: String, CaseIterable {
     case headwear, eyes, mouth, color
@@ -182,7 +183,7 @@ struct CharacterCustomizationScreen: View {
                             }
                         }
                     }
-                    .disabled(vm.isLoading)
+                    .disabled(vm.isLoading || nav.currentPlayer != nil)
                     .padding(.bottom, geo.size.height * 0.1)
                     
                 }.frame(width: geo.size.width, height: geo.size.height)
@@ -191,15 +192,31 @@ struct CharacterCustomizationScreen: View {
             }
         }
         .navigationBarHidden(true)
+        .onAppear {
+            vm.playerCreated = false
+            vm.errorMessage = nil
+        }
+        .onDisappear {
+            // ── if navigating back (not forward), delete player record to free slot ──
+            if !vm.playerCreated {
+                Task {
+                    if let session = nav.currentSession {
+                        let deviceID = DeviceManager.shared.deviceID
+                        let players = try? await CloudKitManager.shared.fetchPlayers(forsession: session.id)
+                        if let existing = players?.first(where: { $0.deviceID == deviceID }),
+                           let recordID = existing.recordID {
+                            try? await CKContainer(identifier: "iCloud.com.Smack")
+                                .publicCloudDatabase.deleteRecord(withID: recordID)
+                        }
+                    }
+                }
+            }
+        }
         .onChange(of: vm.playerCreated) { _, created in
             if created {
                 nav.currentPlayer = vm.createdPlayer
-                // ── الهوست يروح غرفة الانتظار، اللاعب يروح غرفة انتظار اللاعبين ──
-                if nav.isHost {
-                    nav.push(.waitingGameRoom)
-                } else {
-                    nav.push(.waitingGameRoom)
-                }
+                nav.push(.waitingGameRoom)
+                vm.playerCreated = false
             }
         }
     }

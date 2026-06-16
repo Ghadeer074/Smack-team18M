@@ -11,6 +11,7 @@ struct VotersWaitingScreen: View {
     @State private var move = false
     @State private var timeRemaining = 30
     @State private var timerTask: Task<Void, Never>? = nil
+    @State private var pollingTask: Task<Void, Never>? = nil
 
     var body: some View {
         ZStack {
@@ -68,11 +69,39 @@ struct VotersWaitingScreen: View {
             Task {
                 await loadQuestion()
                 startTimer()
+                startPolling()
             }
         }
-        .onDisappear { timerTask?.cancel() }
+        .onDisappear {
+            timerTask?.cancel()
+            pollingTask?.cancel()
+        }
         .onChange(of: timeRemaining) { _, t in
             if t <= 0 { nav.push(.votingScreen) }
+        }
+    }
+
+    // ── polling: لما الاثنين يجاوبون ينتقل فوراً ──
+    private func startPolling() {
+        guard let question = nav.currentSessionQuestion,
+              let session = nav.currentSession else { return }
+
+        pollingTask?.cancel()
+        pollingTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                do {
+                    let answers = try await CloudKitManager.shared.fetchAnswers(forSessionQuestion: question.id)
+                    let players = try await CloudKitManager.shared.fetchPlayers(forsession: session.id)
+                    let playerCount = players.filter { $0.role == "player" }.count
+                    if answers.count >= playerCount && playerCount > 0 {
+                        pollingTask?.cancel()
+                        timerTask?.cancel()
+                        nav.push(.votingScreen)
+                        return
+                    }
+                } catch {}
+            }
         }
     }
 

@@ -101,11 +101,11 @@ struct RoundWinner: View {
                    let session = nav.currentSession {
                     await vm.loadRoundWinner(
                         sessionQuestion: question,
-                        session: session,
-                        totalRounds: nav.totalRounds
+                        session: session
                     )
                 }
-                // ── العداد يبدأ بعد ما يخلص التحميل ──
+                print("🏁 isLastRound = \(vm.isLastRound)")
+                // ── العداد يبدأ بعد ما يخلص التحميل تماماً ──
                 startCountdown()
             }
         }
@@ -160,7 +160,9 @@ struct RoundWinner: View {
             record["round_number"] = nextRound as CKRecordValue
             record["was_answerd"] = 0 as CKRecordValue
             // ── نحفظ عدد الجولات الكلي في كل سؤال ──
-            record["total_rounds"] = nav.totalRounds as CKRecordValue
+            let savedRounds = UserDefaults.standard.integer(forKey: "smack.totalRounds")
+            let finalRounds = savedRounds > 0 ? savedRounds : nav.totalRounds
+            record["total_rounds"] = finalRounds as CKRecordValue
             try await container.publicCloudDatabase.save(record)
         } catch {
             print("❌ createNextQuestion: \(error)")

@@ -115,7 +115,7 @@ struct WaitingGameRoomScreen: View {
                         Button {
                             Task {
                                 if let session = nav.currentSession {
-                                    await vm.startGame(session: session)
+                                    await vm.startGame(session: session, totalRounds: nav.totalRounds)
                                 }
                             }
                         } label: {

@@ -28,44 +28,45 @@ class CharacterCustomizationViewModel {
 
         isLoading = true
         errorMessage = nil
+        // ── reset so onChange fires again ──
+        playerCreated = false
 
         do {
             let deviceID = DeviceManager.shared.deviceID
-
-            // ── تحقق إذا موجود أصلاً ──
-            let existingPlayers = try await CloudKitManager.shared.fetchPlayers(forsession: session.id)
-            if let existing = existingPlayers.first(where: { $0.deviceID == deviceID }) {
-                createdPlayer = existing
-                playerCreated = true
-                isLoading = false
-                return
-            }
-
-            // ── الهوست دائماً player، المصوت voter ──
             let finalRole = isHost ? "player" : role
-
-            // ── نبني الـ record مباشرة بدون save مزدوج ──
             let container = CKContainer(identifier: "iCloud.com.Smack")
-            let record = CKRecord(recordType: "Player")
-            record["id"] = UUID().uuidString as CKRecordValue
-            record["session_id"] = session.id.uuidString as CKRecordValue
-            record["device_id"] = deviceID.uuidString as CKRecordValue
-            record["generated_username"] = name as CKRecordValue
-            record["role"] = finalRole as CKRecordValue
-            record["is_host"] = (isHost ? 1 : 0) as CKRecordValue
-            record["points"] = 0 as CKRecordValue
-            record["joined_at"] = Date() as CKRecordValue
+            let db = container.publicCloudDatabase
 
-            let saved = try await container.publicCloudDatabase.save(record)
+            let existing = try await CloudKitManager.shared.fetchPlayers(forsession: session.id)
 
-            if let player = PlayerModel(from: saved) {
-                createdPlayer = player
-                playerCreated = true
+            if let existingPlayer = existing.first(where: { $0.deviceID == deviceID }),
+               let recordID = existingPlayer.recordID {
+                // ── update name AND role ──
+                let record = try await db.record(for: recordID)
+                record["generated_username"] = name as CKRecordValue
+                record["role"] = finalRole as CKRecordValue
+                record["is_host"] = (isHost ? 1 : 0) as CKRecordValue
+                let saved = try await db.save(record)
+                createdPlayer = PlayerModel(from: saved)
+            } else {
+                // ── create new ──
+                let record = CKRecord(recordType: "Player")
+                record["id"] = UUID().uuidString as CKRecordValue
+                record["session_id"] = session.id.uuidString as CKRecordValue
+                record["device_id"] = deviceID.uuidString as CKRecordValue
+                record["generated_username"] = name as CKRecordValue
+                record["role"] = finalRole as CKRecordValue
+                record["is_host"] = (isHost ? 1 : 0) as CKRecordValue
+                record["points"] = 0 as CKRecordValue
+                record["joined_at"] = Date() as CKRecordValue
+                let saved = try await db.save(record)
+                createdPlayer = PlayerModel(from: saved)
             }
+
+            playerCreated = true
 
         } catch {
             errorMessage = "تعذر الانضمام، حاول مرة ثانية"
-            print("❌ join error: \(error)")
         }
 
         isLoading = false
