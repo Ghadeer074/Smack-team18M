@@ -17,17 +17,20 @@ class WaitingGameRoomViewModel {
     var firstQuestion: sessionQuestionModel?
     var cachedTotalRounds: Int = 1
 
+    private var currentSession: sessionModel?
     private var pollingTask: Task<Void, Never>?
-    private var currentJoinCode: String = ""
 
     func startPolling(session: sessionModel) {
-        currentJoinCode = session.joinCode
+        self.currentSession = session
         pollingTask?.cancel()
+        // ── fetch immediately on start ──
+        Task { await fetchPlayers(sessionID: session.id) }
         pollingTask = Task {
             while !Task.isCancelled {
-                await fetchPlayers(sessionID: session.id)
-                await checkSessionStarted(sessionID: session.id)
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                async let p: () = fetchPlayers(sessionID: session.id)
+                async let c: () = checkSessionStarted(sessionID: session.id)
+                _ = await (p, c)
             }
         }
     }
@@ -37,7 +40,7 @@ class WaitingGameRoomViewModel {
         pollingTask = nil
     }
 
-    private func fetchPlayers(sessionID: UUID) async {
+    func fetchPlayers(sessionID: UUID) async {
         do {
             players = try await CloudKitManager.shared.fetchPlayers(forsession: sessionID)
         } catch {
@@ -46,19 +49,16 @@ class WaitingGameRoomViewModel {
     }
 
     private func checkSessionStarted(sessionID: UUID) async {
-        guard !currentJoinCode.isEmpty && !gameStarted else { return }
+        guard let joinCode = currentSession?.joinCode, !gameStarted else { return }
         do {
-            if let session = try await CloudKitManager.shared.fetchsession(byJoinCode: currentJoinCode),
+            if let session = try await CloudKitManager.shared.fetchsession(byJoinCode: joinCode),
                session.status == "playing" {
-                // ── جيب الـ SessionQuestions بفلتر بسيط على session_id فقط ──
                 let predicate = NSPredicate(format: "session_id == %@", sessionID.uuidString)
                 let questions: [sessionQuestionModel] = try await CloudKitManager.shared.fetch(
-                    recordType: "SessionQuestion",
-                    predicate: predicate
+                    recordType: "SessionQuestion", predicate: predicate
                 )
                 firstQuestion = questions.first
                 cachedTotalRounds = session.roundCount
-                UserDefaults.standard.set(session.roundCount, forKey: "smack.totalRounds")
                 gameStarted = true
                 pollingTask?.cancel()
             }
@@ -69,16 +69,13 @@ class WaitingGameRoomViewModel {
         isLoading = true
         errorMessage = nil
 
-        // Read from UserDefaults — most reliable source
         let rounds = UserDefaults.standard.integer(forKey: "smack.totalRounds")
         let finalRounds = rounds > 0 ? rounds : totalRounds
 
         do {
             let allQuestions: [QuestionModel] = try await CloudKitManager.shared.fetch(
-                recordType: "Question",
-                predicate: NSPredicate(value: true)
+                recordType: "Question", predicate: NSPredicate(value: true)
             )
-
             guard let randomQuestion = allQuestions.randomElement() else {
                 errorMessage = "ما فيه أسئلة في قاعدة البيانات"
                 isLoading = false
@@ -99,10 +96,8 @@ class WaitingGameRoomViewModel {
             cachedTotalRounds = finalRounds
 
             try await CloudKitManager.shared.updatesessionStatus(
-                sessionID: session.id,
-                status: "playing"
+                sessionID: session.id, status: "playing"
             )
-
             gameStarted = true
         } catch {
             errorMessage = error.localizedDescription

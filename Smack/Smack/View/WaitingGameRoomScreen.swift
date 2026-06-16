@@ -81,26 +81,26 @@ struct WaitingGameRoomScreen: View {
                                 VStack(spacing: 4) {
                                     ZStack {
                                         CircleView(size: geo.size.width * 0.24)
-                                        Image("TinyCharacter")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: geo.size.width * 0.25)
+                                        CharacterView(player: player, size: geo.size.width * 0.22)
+                                    }
+                                    .overlay(alignment: .top) {
+                                        if player.isHost {
+                                            Text("👑")
+                                                .font(.system(size: geo.size.width * 0.06))
+                                                .offset(y: -geo.size.width * 0.04)
+                                        }
                                     }
                                     .padding(.bottom, 2)
 
                                     Text(player.generatedUsername)
                                         .font(.custom("Tajawal-Black", size: geo.size.width * 0.04))
                                         .foregroundStyle(.white)
-
-                                    if player.isHost {
-                                        Text("👑")
-                                            .font(.system(size: geo.size.width * 0.04))
-                                    }
                                 }
                             }
                         }
                         .environment(\.layoutDirection, .rightToLeft)
                         .padding(.horizontal, geo.size.width * 0.05)
+                        .padding(.top, geo.size.width * 0.05)
                     }
 
                     // ======= error message =======

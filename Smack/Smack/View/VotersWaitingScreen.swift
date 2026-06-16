@@ -46,17 +46,18 @@ struct VotersWaitingScreen: View {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color(red: 0.15, green: 0.15, blue: 0.15))
                             .overlay(RoundedRectangle(cornerRadius: 20).stroke(.yellow, lineWidth: 4))
-                            .frame(width: geo.size.width * 0.7, height: geo.size.height * 0.1)
+                            .frame(width: geo.size.width * 0.7, height: geo.size.height * 0.12)
 
                         VStack(spacing: 2) {
                             Text("التصويت يبدأ بعد")
                                 .font(.custom("Tajawal-Bold", size: geo.size.width * 0.04))
                                 .foregroundStyle(.white)
-                            TextTitle(text: "\(timeRemaining)ث",
+                                .padding(.top)
+                            TextTitle(text: "\(timeRemaining) ث",
                                 fontName: "Lalezar-Regular",
                                 size: geo.size.width * 0.1,
                                 strokeWidth: 0,
-                                color: timeRemaining <= 5 ? .red : .yellow)
+                                      color: timeRemaining <= 5 ? Color(.red) : Color(.yellow))
                         }
                     }
 

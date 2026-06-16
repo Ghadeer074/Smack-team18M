@@ -12,8 +12,10 @@ class RoundWinnerViewModel {
 
     var winnerName: String = ""
     var winnerAnswer: String = ""
+    var winnerPlayer: PlayerModel? = nil
     var isLoading = false
     var isLastRound = false
+    var isDraw = false
 
     func loadRoundWinner(
         sessionQuestion: sessionQuestionModel,
@@ -21,39 +23,45 @@ class RoundWinnerViewModel {
     ) async {
         isLoading = true
         do {
-            // ── fetch round_count directly from session record ──
             let allSessions: [sessionModel] = try await CloudKitManager.shared.fetch(
                 recordType: "session",
                 predicate: NSPredicate(format: "join_code == %@", session.joinCode)
             )
             let totalRounds = allSessions.first?.roundCount ?? 1
-
             isLastRound = sessionQuestion.roundNumber >= totalRounds
 
             let votes = try await CloudKitManager.shared.fetchVotes(forsessionQuestion: sessionQuestion.id)
             let answers = try await CloudKitManager.shared.fetchAnswers(forSessionQuestion: sessionQuestion.id)
+            let players = try await CloudKitManager.shared.fetchPlayers(forsession: session.id)
 
             let voteCounts = Dictionary(grouping: votes, by: { $0.answerID }).mapValues { $0.count }
 
-            if let topAnswerID = voteCounts.max(by: { $0.value < $1.value })?.key,
-               let winningAnswer = answers.first(where: { $0.id == topAnswerID }) {
+            // ── check for draw ──
+            let topVoteCount = voteCounts.values.max() ?? 0
+            let topAnswers = voteCounts.filter { $0.value == topVoteCount }
+
+            if topAnswers.count > 1 && topVoteCount > 0 {
+                isDraw = true
+            } else if let topAnswerID = topAnswers.keys.first,
+                      let winningAnswer = answers.first(where: { $0.id == topAnswerID }) {
                 winnerAnswer = winningAnswer.content
-                let players = try await CloudKitManager.shared.fetchPlayers(forsession: session.id)
-                if let winner = players.first(where: { $0.id == winningAnswer.playerID }),
-                   let recordID = winner.recordID {
+                if let winner = players.first(where: { $0.id == winningAnswer.playerID }) {
                     winnerName = winner.generatedUsername
-                    // ── update points using recordID directly, no id query ──
-                    let record = try await CKContainer(identifier: "iCloud.com.Smack")
-                        .publicCloudDatabase.record(for: recordID)
-                    let current = record["points"] as? Int ?? 0
-                    record["points"] = (current + 1) as CKRecordValue
-                    try await CKContainer(identifier: "iCloud.com.Smack")
-                        .publicCloudDatabase.save(record)
+                    winnerPlayer = winner
+                    // ── update points ──
+                    if let recordID = winner.recordID {
+                        let record = try await CKContainer(identifier: "iCloud.com.Smack")
+                            .publicCloudDatabase.record(for: recordID)
+                        let current = record["points"] as? Int ?? 0
+                        record["points"] = (current + 1) as CKRecordValue
+                        try await CKContainer(identifier: "iCloud.com.Smack")
+                            .publicCloudDatabase.save(record)
+                    }
                 }
             } else if let firstAnswer = answers.first {
                 winnerAnswer = firstAnswer.content
-                let players = try await CloudKitManager.shared.fetchPlayers(forsession: session.id)
-                winnerName = players.first(where: { $0.id == firstAnswer.playerID })?.generatedUsername ?? ""
+                winnerPlayer = players.first(where: { $0.id == firstAnswer.playerID })
+                winnerName = winnerPlayer?.generatedUsername ?? ""
             }
 
         } catch {

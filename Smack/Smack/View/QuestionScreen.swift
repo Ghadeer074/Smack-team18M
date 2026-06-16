@@ -24,7 +24,7 @@ struct QuestionScreen: View {
                 Image("TinyCharacter")
                     .resizable().scaledToFit()
                     .frame(width: geo.size.width * 0.7)
-                    .position(x: geo.size.width * 0.3, y: geo.size.height * 0.17)
+                    .position(x: geo.size.width * 0.3, y: geo.size.height * 0.25)
                     .offset(y: move ? -5 : 0)
                     .animation(.easeInOut(duration: 1.3).repeatForever(autoreverses: true), value: move)
                     .onAppear { move.toggle() }
@@ -34,7 +34,7 @@ struct QuestionScreen: View {
                     fontName: "Lalezar-Regular",
                     size: geo.size.width * 0.12,
                     strokeWidth: 1,
-                    color: timeRemaining <= 10 ? .red : .yellow
+                    color: timeRemaining <= 10 ? Color(.red) : Color(.yellow)
                 )
                 .position(x: geo.size.width * 0.5, y: geo.size.height * 0.07)
 
@@ -78,7 +78,7 @@ struct QuestionScreen: View {
                             ButtonView(
                                 width: geo.size.width * 0.45,
                                 height: geo.size.height * 0.1,
-                                fillColor: submitted ? Color(.gray) : Color(.red)
+                                fillColor: Color(.red)
                             )
                             if isLoading {
                                 ProgressView().tint(.white)
@@ -192,4 +192,4 @@ struct QuestionScreen: View {
     }
 }
 
-#Preview { QuestionScreen() }
+#Preview { QuestionScreen().environment(NavigationManager()) }

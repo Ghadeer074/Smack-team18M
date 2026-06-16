@@ -37,15 +37,25 @@ struct GameWinner: View {
 
                     Spacer()
 
-                    Image("Character")
-                        .resizable().scaledToFit()
-                        .frame(width: geo.size.width * 0.55)
-                        .rotationEffect(.degrees(move ? 4 : -4))
-                        .offset(y: move ? -8 : 0)
-                        .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: move)
-                        .opacity(characterVisible ? 1 : 0)
-                        .scaleEffect(characterVisible ? 1 : 0.6)
-                        .animation(.spring(duration: 0.5), value: characterVisible)
+                    if let winner = vm.winnerPlayer {
+                        CharacterView(player: winner, size: geo.size.width * 0.55)
+                            .rotationEffect(.degrees(move ? 4 : -4))
+                            .offset(y: move ? -8 : 0)
+                            .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: move)
+                            .opacity(characterVisible ? 1 : 0)
+                            .scaleEffect(characterVisible ? 1 : 0.6)
+                            .animation(.spring(duration: 0.5), value: characterVisible)
+                    } else {
+                        Image("Character")
+                            .resizable().scaledToFit()
+                            .frame(width: geo.size.width * 0.55)
+                            .rotationEffect(.degrees(move ? 4 : -4))
+                            .offset(y: move ? -8 : 0)
+                            .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: move)
+                            .opacity(characterVisible ? 1 : 0)
+                            .scaleEffect(characterVisible ? 1 : 0.6)
+                            .animation(.spring(duration: 0.5), value: characterVisible)
+                    }
 
                     if vm.isLoading {
                         ProgressView().tint(.white)

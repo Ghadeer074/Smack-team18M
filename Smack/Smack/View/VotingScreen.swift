@@ -123,10 +123,10 @@ struct VotingScreen: View {
         }
         .navigationBarHidden(true)
         .onAppear {
-            bounce1 = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { bounce2 = true }
             Task {
                 await loadAnswers()
+                bounce1 = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { bounce2 = true }
                 startTimer()
                 startPolling()
             }
@@ -209,4 +209,4 @@ struct VotingScreen: View {
     }
 }
 
-#Preview { VotingScreen() }
+#Preview { VotingScreen().environment(NavigationManager()) }

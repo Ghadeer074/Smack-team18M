@@ -19,7 +19,11 @@ class CharacterCustomizationViewModel {
         name: String,
         session: sessionModel,
         role: String,
-        isHost: Bool
+        isHost: Bool,
+        colorIndex: Int,
+        eyesIndex: Int,
+        mouthIndex: Int,
+        headwearIndex: Int
     ) async {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
             errorMessage = "أدخل اسمك أولاً"
@@ -28,7 +32,6 @@ class CharacterCustomizationViewModel {
 
         isLoading = true
         errorMessage = nil
-        // ── reset so onChange fires again ──
         playerCreated = false
 
         do {
@@ -41,15 +44,17 @@ class CharacterCustomizationViewModel {
 
             if let existingPlayer = existing.first(where: { $0.deviceID == deviceID }),
                let recordID = existingPlayer.recordID {
-                // ── update name AND role ──
                 let record = try await db.record(for: recordID)
                 record["generated_username"] = name as CKRecordValue
                 record["role"] = finalRole as CKRecordValue
                 record["is_host"] = (isHost ? 1 : 0) as CKRecordValue
+                record["color_index"] = colorIndex as CKRecordValue
+                record["eyes_index"] = eyesIndex as CKRecordValue
+                record["mouth_index"] = mouthIndex as CKRecordValue
+                record["headwear_index"] = headwearIndex as CKRecordValue
                 let saved = try await db.save(record)
                 createdPlayer = PlayerModel(from: saved)
             } else {
-                // ── create new ──
                 let record = CKRecord(recordType: "Player")
                 record["id"] = UUID().uuidString as CKRecordValue
                 record["session_id"] = session.id.uuidString as CKRecordValue
@@ -59,6 +64,10 @@ class CharacterCustomizationViewModel {
                 record["is_host"] = (isHost ? 1 : 0) as CKRecordValue
                 record["points"] = 0 as CKRecordValue
                 record["joined_at"] = Date() as CKRecordValue
+                record["color_index"] = colorIndex as CKRecordValue
+                record["eyes_index"] = eyesIndex as CKRecordValue
+                record["mouth_index"] = mouthIndex as CKRecordValue
+                record["headwear_index"] = headwearIndex as CKRecordValue
                 let saved = try await db.save(record)
                 createdPlayer = PlayerModel(from: saved)
             }

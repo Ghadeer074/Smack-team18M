@@ -19,11 +19,6 @@ struct SplashScreen: View {
     @State private var starsVisible = false
     @State private var buttonVisible = false
 
-    // ── هل شاف الـ splash من قبل؟ ──
-    private var hasSeenSplash: Bool {
-        UserDefaults.standard.bool(forKey: "hasSeenSplash")
-    }
-
     var body: some View {
         ZStack {
             Color(.blue).ignoresSafeArea()
@@ -152,16 +147,16 @@ struct SplashScreen: View {
         }
         .navigationBarHidden(true)
         .onAppear {
-            if hasSeenSplash {
-                // ── سبق شافه — اطلع الشاشة فوراً بدون animation ──
+            if SessionFlags.splashShownThisSession {
+                // ── returning from game mid-session — show instantly ──
                 characterVisible = true
                 characterTilted = true
                 titleVisible = true
                 starsVisible = true
                 buttonVisible = true
             } else {
-                // ── أول مرة — اشغل الـ animation كاملة ──
-                UserDefaults.standard.set(true, forKey: "hasSeenSplash")
+                // ── fresh app launch — play full animation ──
+                SessionFlags.splashShownThisSession = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3)  { bubble1Visible = true }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.3)  { bubble1Visible = false }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5)  { characterVisible = true }

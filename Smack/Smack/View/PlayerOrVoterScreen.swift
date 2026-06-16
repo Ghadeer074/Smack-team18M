@@ -93,9 +93,10 @@ struct PlayerOrVoterScreen: View {
                         if playerLocked {
                             Text("اللاعبين اكتملوا — ستنضم كمصوّت")
                                 .font(.custom("Tajawal-Bold", size: geo.size.width * 0.04))
-                                .foregroundStyle(.white.opacity(0.8))
+                                .foregroundStyle(.white)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
+                                .padding(.vertical)
                         }
                     }
 
@@ -141,7 +142,7 @@ struct PlayerOrVoterScreen: View {
         pollingTask?.cancel()
         pollingTask = Task {
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
                 await loadPlayerCount()
             }
         }

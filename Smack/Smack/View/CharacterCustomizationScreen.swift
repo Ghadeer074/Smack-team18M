@@ -163,7 +163,11 @@ struct CharacterCustomizationScreen: View {
                                     name: playerName,
                                     session: session,
                                     role: nav.selectedRole,
-                                    isHost: nav.isHost
+                                    isHost: nav.isHost,
+                                    colorIndex: selections[.color] ?? 0,
+                                    eyesIndex: selections[.eyes] ?? 0,
+                                    mouthIndex: selections[.mouth] ?? 0,
+                                    headwearIndex: selections[.headwear] ?? 0
                                 )
                             }
                         }
