@@ -61,12 +61,16 @@ open Smack-team18M/Smack/Smack.xcodeproj
 
 ## My Contributions
 
-- Designed the full **CloudKit database schema** and ERD
-- Built the backend layer: `CloudKitManager`, `SubscriptionManager`, `AnalyticsManager`, the `GameSessionViewModel` game logic and the invite-code generator
-- Resolved CloudKit deployment and indexing issues, and fixed game-state bugs (lost state, repeated questions, stuck round counts, role locking)
+I built most of the app's **backend and data layer**, with support from my teammates:
+
+- **Data:** designed the full CloudKit database schema and the ERD (sessions, players, questions, answers, votes, devices, purchases and subscriptions)
+- **Backend:** built the CloudKit layer, including `CloudKitManager` with generic CRUD, `SubscriptionManager` for real-time updates and push notifications, `AnalyticsManager` and `DeviceManager`
+- **Game logic:** built `GameSessionViewModel` (the host/join flow and the game state machine) and the 6-digit invite-code generator
+- **Debugging:** resolved CloudKit deployment and indexing issues, and fixed game-state bugs (lost state, repeated questions, stuck round counts, role locking)
 
 ## Team
 
-Ghadeer Fallatah ([@Ghadeer074](https://github.com/Ghadeer074)) · Nouf Alshawoosh ([@NoufAlshawoosh](https://github.com/NoufAlshawoosh)) · Nedaa ([@Lilnedaa](https://github.com/Lilnedaa))
+- **Development:** Ghadeer Fallatah ([@Ghadeer074](https://github.com/Ghadeer074)) · Nouf Alshawoosh ([@NoufAlshawoosh](https://github.com/NoufAlshawoosh)) · Nedaa ([@Lilnedaa](https://github.com/Lilnedaa))
+- **Design:** Taif · Nouf
 
 #tconnect
