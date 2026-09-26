@@ -1,4 +1,4 @@
-# Smack – Multiplayer Party & Bluffing Game for iOS
+# Smack – Multiplayer Party Game
 
 **Smack** is a real-time multiplayer party game for friends in the same room, designed for **Arabic-speaking Gulf users**. It's inspired by social-deduction and bluffing games. The host creates a room and friends join with a **6-digit code**. Each round, players answer a funny question and everyone **votes** for their favorite answer. Points decide the winner.
 
